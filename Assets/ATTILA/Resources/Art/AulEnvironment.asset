@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a5bca42cd2aa084aa906fdbaf632075, type: 3}
+  m_Name: AulEnvironment
+  m_EditorClassIdentifier: Assembly-CSharp::ATTILA.Environment.EnvironmentArtSet
+  tree: {fileID: 6573831607599745873, guid: ea7e953d268e00f4996cad7d0c9cf8e4, type: 3}
+  smallTree: {fileID: 6161475517690458489, guid: 5854cc2a1e93ca841a1865c53c4cbb25, type: 3}
+  bush: {fileID: 535890081926879014, guid: 388dc8b4a14918d4d82e2b5a10673a20, type: 3}
+  smallBush: {fileID: 4643628506348868390, guid: 1a25fac3578c97e408ad995f152f4f9a, type: 3}
+  grass: {fileID: 1001548220888246371, guid: 4f5f06dafb5057e4894e2f3281952864, type: 3}
+  rock: {fileID: 8402000951016798418, guid: c52159ff05b49cf4cbf14f3105d71afc, type: 3}
+  smallRock: {fileID: 1937193962431278846, guid: f02e586ceaa617c4496a650b5825a18b, type: 3}
+  fence: {fileID: 1594771163853158911, guid: 309d733f8feebd843aa5c3b716abad15, type: 3}
+  logs: {fileID: 3526652277367137403, guid: 125adf5cf3d74c04fa5082c56efe1041, type: 3}

@@ -1,0 +1,14 @@
+[Ll]ibrary/
+[Tt]emp/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+[Mm]emoryCaptures/
+[Rr]ecordings/
+BatchBuild.log
+*.csproj
+*.sln
+*.user
+*.pidb
+*.pdb
+*.opendb
+*.VC.db
