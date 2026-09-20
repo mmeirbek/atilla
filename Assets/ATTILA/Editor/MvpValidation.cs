@@ -85,6 +85,16 @@ namespace ATTILA.Editor
                             Require(string.IsNullOrEmpty(topic.unlockEntryId) || content.Entry(topic.unlockEntryId) != null, $"{chapter.id}: topic entry {topic.unlockEntryId}");
                         }
                     }
+                    if (beat.action is BeatAction.Collect or BeatAction.Find or BeatAction.Escort or BeatAction.Build)
+                    {
+                        Require(beat.task != null, $"{chapter.id}: task data for {beat.action}");
+                        Require(beat.task.points != null && beat.task.points.Length > 0, $"{chapter.id}: task points for {beat.action}");
+                        Require(!string.IsNullOrEmpty(beat.task.title) && !string.IsNullOrEmpty(beat.task.hint), $"{chapter.id}: task title and hint for {beat.action}");
+                        foreach (var prop in beat.task.props ?? Array.Empty<string>())
+                            Require(art.Prop(prop) != null, $"{chapter.id}: task prop {prop}");
+                        if (beat.action == BeatAction.Collect)
+                            Require(beat.task.points.Length >= beat.task.required, $"{chapter.id}: enough pickups for {beat.task.title}");
+                    }
                     if (beat.action == BeatAction.Map)
                         Require(beat.map != null && beat.map.route != null && beat.map.route.Length >= 2, $"{chapter.id}: map route");
                 }
@@ -211,19 +221,24 @@ namespace ATTILA.Editor
                     break;
                 case 5:
                     Require(Director.Quest.BeatIndex > 0 || Director.Ui.DialogueActive, "First beat progresses after the dialogue");
-                    Screens();
+                    StartTask();
                     break;
                 case 6:
+                    Capture($"05b-{role}-task");
+                    Close();
+                    Screens();
+                    break;
+                case 7:
                     Capture($"06-{role}-campfire");
                     Close();
                     MapScreen.Show(Director.Ui.OverlayRoot, FindMap(), () => { });
                     break;
-                case 7:
+                case 8:
                     Capture($"07-{role}-map");
                     Close();
                     Minigame();
                     break;
-                case 8:
+                case 9:
                     Capture($"08-{role}-minigame");
                     Close();
                     // Open a couple of entries so the screenshot shows both states.
@@ -231,22 +246,22 @@ namespace ATTILA.Editor
                     SaveService.Unlock("sokyr_teke");
                     EncyclopediaScreen.Show(Director.Ui.OverlayRoot);
                     break;
-                case 9:
+                case 10:
                     Capture($"09-{role}-encyclopedia");
                     Close();
                     WardrobeScreen.Show(Director.Ui.OverlayRoot);
                     break;
-                case 10:
+                case 11:
                     Capture($"10-{role}-wardrobe");
                     Close();
                     SettingsScreen.Show(Director.Ui.OverlayRoot);
                     break;
-                case 11:
+                case 12:
                     Capture($"11-{role}-settings");
                     Close();
                     Director.Ui.ShowFinale(Director.Chapter, Director.Chapter.finaleText, 320, 2, () => { }, () => { }, () => { });
                     break;
-                case 12:
+                case 13:
                     Capture($"12-{role}-finale");
                     Close();
                     role++;
@@ -301,6 +316,29 @@ namespace ATTILA.Editor
 
         private static void Skip() => Director.Ui.FastForward();
 
+        /// <summary>Starts the chapter's world job so the screenshot shows the pickups, the horse or the yurt site.</summary>
+        private static void StartTask()
+        {
+            while (Director.Ui.DialogueActive) Director.Ui.FastForward();
+            var beat = Director.Chapter.beats.FirstOrDefault(b => b.action is BeatAction.Collect or BeatAction.Find or BeatAction.Escort or BeatAction.Build);
+            Require(beat != null, "Chapter has a world task");
+            var player = UnityEngine.Object.FindAnyObjectByType<PlayerController>();
+            WorldTask task = beat.action switch
+            {
+                BeatAction.Collect => Director.gameObject.AddComponent<CollectTask>(),
+                BeatAction.Find => Director.gameObject.AddComponent<FindTask>(),
+                BeatAction.Escort => Director.gameObject.AddComponent<EscortTask>(),
+                _ => Director.gameObject.AddComponent<BuildTask>()
+            };
+            task.Begin(beat.task, player, () => { });
+            var first = beat.task.points[0];
+            var controller = player.GetComponent<CharacterController>();
+            controller.enabled = false;
+            player.transform.position = new Vector3(first.x, 1f, first.y - 3f);
+            controller.enabled = true;
+            Physics.SyncTransforms();
+        }
+
         private static void Screens()
         {
             while (Director.Ui.DialogueActive) Director.Ui.FastForward();
@@ -328,6 +366,7 @@ namespace ATTILA.Editor
 
         private static void Close()
         {
+            foreach (var task in Director.GetComponents<WorldTask>()) UnityEngine.Object.DestroyImmediate(task);
             foreach (Transform child in Director.Ui.OverlayRoot) UnityEngine.Object.DestroyImmediate(child.gameObject);
             Director.Ui.SetVignette(.38f, 3000f);
             Director.Ui.HideMinigame();

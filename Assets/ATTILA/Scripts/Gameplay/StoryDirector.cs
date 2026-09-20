@@ -130,10 +130,30 @@ namespace ATTILA.Gameplay
                 case BeatAction.Map:
                     BeginOverlay(() => MapScreen.Show(Ui.OverlayRoot, beat.map, () => FinishOverlay(() => CompleteBeat(beat))));
                     break;
+                case BeatAction.Collect:
+                    RunTask<CollectTask>(beat);
+                    break;
+                case BeatAction.Find:
+                    RunTask<FindTask>(beat);
+                    break;
+                case BeatAction.Escort:
+                    RunTask<EscortTask>(beat);
+                    break;
+                case BeatAction.Build:
+                    RunTask<BuildTask>(beat);
+                    break;
                 default:
                     CompleteBeat(beat);
                     break;
             }
+        }
+
+        /// <summary>World jobs keep the player walking; only conversations are blocked while one runs.</summary>
+        private void RunTask<T>(BeatDefinition beat) where T : WorldTask
+        {
+            IsModal = true;
+            var task = gameObject.AddComponent<T>();
+            task.Begin(beat.task, player, () => { IsModal = false; CompleteBeat(beat); });
         }
 
         private MusicTrack worldMusic = MusicTrack.Aul;

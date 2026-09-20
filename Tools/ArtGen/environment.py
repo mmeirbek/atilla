@@ -285,6 +285,112 @@ def well():
     return outlined(c.image)
 
 
+def firewood():
+    c = Canvas(40, 26)
+    for i, (x, y) in enumerate([(4, 16), (12, 14), (20, 15), (28, 13)]):
+        wood = (146, 102, 58) if i % 2 == 0 else (120, 82, 46)
+        c.rect(x, y, x + 12, y + 5, wood)
+        c.ellipse(x + 10, y, x + 14, y + 5, (176, 138, 92))
+        c.px(x + 12, y + 2, (108, 74, 44))
+    c.rect(2, 20, 36, 24, (132, 92, 52))
+    c.rect(16, 10, 22, 24, (110, 70, 40))
+    return outlined(c.image)
+
+
+def torsyk():
+    c = Canvas(28, 34)
+    body = (150, 106, 62)
+    c.ellipse(2, 8, 25, 32, body)
+    c.ellipse(6, 12, 21, 26, shade(body, 1.12))
+    c.rect(10, 2, 17, 10, (110, 76, 44))
+    c.rect(9, 0, 18, 3, (86, 58, 34))
+    for x, y in [(13, 18), (10, 22), (16, 22), (13, 26)]:
+        c.px(x, y, GOLD)
+    return outlined(c.image)
+
+
+def kerege():
+    c = Canvas(48, 34)
+    for i in range(6):
+        x = 3 + i * 8
+        c.line(x, 30, x + 10, 4, (170, 130, 80))
+        c.line(x + 10, 30, x, 4, (150, 112, 68))
+    c.rect(1, 2, 46, 4, (120, 84, 48))
+    c.rect(1, 29, 46, 31, (120, 84, 48))
+    for i in range(6):
+        c.px(7 + i * 8, 17, (90, 62, 38))
+    return outlined(c.image)
+
+
+def uyk():
+    c = Canvas(44, 30)
+    for i in range(5):
+        y = 4 + i * 5
+        c.line(2, y + 2, 40, y, (176, 136, 84) if i % 2 == 0 else (150, 112, 68))
+    c.rect(18, 2, 24, 28, (150, 30, 34))
+    c.rect(18, 12, 24, 16, GOLD)
+    return outlined(c.image)
+
+
+def shanyrak():
+    c = Canvas(40, 30)
+    c.ellipse(2, 4, 37, 26, (120, 84, 50))
+    c.ellipse(6, 8, 33, 22, (58, 44, 40))
+    for a in range(0, 360, 45):
+        x = 19 + math.cos(math.radians(a)) * 14
+        y = 15 + math.sin(math.radians(a)) * 9
+        c.line(19, 15, x, y, (166, 122, 72))
+    c.ellipse(15, 11, 23, 19, (120, 84, 50))
+    return outlined(c.image)
+
+
+def felt_roll():
+    c = Canvas(44, 26)
+    c.rect(4, 6, 38, 22, (226, 212, 180))
+    c.ellipse(1, 5, 11, 23, (240, 228, 200))
+    c.ellipse(32, 5, 42, 23, (210, 196, 164))
+    c.ellipse(35, 8, 39, 20, (186, 172, 142))
+    c.rect(14, 5, 18, 23, (150, 30, 34))
+    c.rect(26, 5, 30, 23, (150, 30, 34))
+    return outlined(c.image)
+
+
+def post():
+    c = Canvas(24, 44)
+    c.rect(9, 6, 14, 42, (128, 88, 50))
+    c.rect(9, 6, 14, 10, (96, 64, 36))
+    c.ellipse(6, 0, 17, 9, (150, 106, 62))
+    c.rect(3, 14, 20, 16, (106, 72, 42))
+    c.px(5, 18, (70, 50, 34))
+    c.px(18, 18, (70, 50, 34))
+    return outlined(c.image)
+
+
+def yurt_frame_texture():
+    width, height = 128, 48
+    image = Image.new("RGB", (width, height), (196, 178, 144))
+    draw = ImageDraw.Draw(image)
+    for x in range(-16, width + 16, 10):
+        draw.line([x, height - 2, x + 26, 4], fill=(150, 112, 68), width=2)
+        draw.line([x + 26, height - 2, x, 4], fill=(128, 94, 56), width=2)
+    draw.rectangle([0, 0, width - 1, 3], fill=(108, 74, 44))
+    draw.rectangle([0, height - 4, width - 1, height - 1], fill=(108, 74, 44))
+    return image
+
+
+def yurt_poles_texture():
+    size = 96
+    image = Image.new("RGB", (size, size), (200, 184, 150))
+    draw = ImageDraw.Draw(image)
+    c = size / 2
+    for i in range(16):
+        a = i * math.pi / 8
+        draw.line([c + math.cos(a) * 9, c + math.sin(a) * 9, c + math.cos(a) * 48, c + math.sin(a) * 48], fill=(156, 116, 70), width=2)
+    draw.ellipse([c - 10, c - 10, c + 10, c + 10], fill=(96, 62, 38))
+    draw.ellipse([c - 7, c - 7, c + 7, c + 7], fill=(58, 44, 40))
+    return image
+
+
 def campfire_frames():
     frames = []
     for i in range(4):

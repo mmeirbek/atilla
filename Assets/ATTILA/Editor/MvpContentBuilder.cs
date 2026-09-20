@@ -72,6 +72,16 @@ namespace ATTILA.Editor
         private static BeatDefinition Beat(string npc, string objective, string dialogue, int xp, string checkpoint, BeatAction action = BeatAction.None, params string[] unlock) =>
             new() { npcId = npc, objective = objective, dialogueId = dialogue, xp = xp, checkpoint = checkpoint, action = action, unlockEntryIds = unlock };
 
+        private static BeatDefinition TaskBeat(string npc, string objective, string dialogue, int xp, string checkpoint, BeatAction action, TaskDefinition task, params string[] unlock)
+        {
+            var beat = Beat(npc, objective, dialogue, xp, checkpoint, action, unlock);
+            beat.task = task;
+            return beat;
+        }
+
+        private static TaskDefinition Job(string title, string hint, string itemLabel, string[] props, Vector2[] points, int required = 1, Vector2 goal = default) =>
+            new() { title = title, hint = hint, itemLabel = itemLabel, props = props, points = points, required = required, goal = goal };
+
         private static CampfireTopic Topic(string label, string dialogue, string entry = null) => new() { label = label, dialogueId = dialogue, unlockEntryId = entry };
 
         private static NpcDefinition Npc(string id, string name, string look, float radius) => new()
@@ -129,8 +139,14 @@ namespace ATTILA.Editor
             Say("DIA_K_BI_GO", "Би", "bi", "Батыл шешім. Бірақ қарт пен баланы ұмытпаңыз — көш солардың қарқынымен жүреді.");
             Say("DIA_K_BI_LISTEN", "Би", "bi", "Дана сөз. Елдің келісімі — көштің берік қазығы. Айша дайындықты бастап қойды.");
             Say("DIA_K_AISHA", "Айша", "woman",
-                "Киіз үйді жығып, түйеге артамыз. Кереге, уық, шаңырақ — бәрі өз орнында.",
-                "Көш жолы ұзақ. Бала-шаға мен қарттар алдыңғы легте жүрсін.");
+                "Көш алдында от жағамыз, бірақ отын жетпей тұр.",
+                "Ауыл маңынан төрт бума отын жинап әкелші.");
+            Say("DIA_K_AISHA_DONE", "Айша", "woman",
+                "Отын жетеді, рақмет. Қазан асылады.",
+                "Енді малшыға көмектес: жаңа қонысқа киіз үй тігу керек.");
+            Say("DIA_K_HERDER", "Малшы", "resident",
+                "Киіз үйдің бөліктері шашылып жатыр: кереге, уық, шаңырақ, киіз.",
+                "Ретімен әкел: алдымен кереге, сосын уық, шаңырақ, ең соңында киіз.");
             Say("DIA_K_CHILDREN", "Балалар", "child",
                 "Сұлтан аға, көш алдында бізбен ойнаңызшы!",
                 "Сіз «теке» боласыз: көзіңізді байлаймыз, ал біз шапалақ соғамыз!");
@@ -162,7 +178,15 @@ namespace ATTILA.Editor
                 At("NPC_HERDER", 10.5f, -1.5f, FacingHint.West), Figure("child_girl", 6.3f, 6.2f, FacingHint.West), Figure("woman", -10f, 12.4f), Figure("resident", 8f, 12f, FacingHint.West)
             });
             chapter.beats.Add(Beat("NPC_BI", "Бимен кеңес", "DIA_K_BI", 50, "KEREY_COUNCIL"));
-            chapter.beats.Add(Beat("NPC_AISHA", "Айшадан көш дайындығын біл", "DIA_K_AISHA", 30, "KEREY_PREPARE", BeatAction.None, "kosh"));
+            chapter.beats.Add(TaskBeat("NPC_AISHA", "Айшаға отын жина", "DIA_K_AISHA", 60, "KEREY_FIREWOOD", BeatAction.Collect,
+                Job("ОТЫН ЖИНАУ", "Ауыл маңындағы төрт бума отынды жина.", "Отын", new[] { "firewood" },
+                    new[] { new Vector2(-6.5f, 11.5f), new Vector2(6.8f, -9.5f), new Vector2(-9.6f, -3.2f), new Vector2(9.2f, 8.6f), new Vector2(-14.5f, 4.5f) }, 4)));
+            chapter.beats.Add(Beat("NPC_AISHA", "Отынды Айшаға апар", "DIA_K_AISHA_DONE", 30, "KEREY_PREPARE", BeatAction.None, "kosh"));
+            chapter.beats.Add(TaskBeat("NPC_HERDER", "Малшымен киіз үй тік", "DIA_K_HERDER", 80, "KEREY_YURT", BeatAction.Build,
+                Job("КИІЗ ҮЙ ТІГУ", "Бөліктерді ретімен апар: кереге, уық, шаңырақ, киіз.", "Бөлік",
+                    new[] { "kerege", "uyk", "shanyrak", "felt" },
+                    new[] { new Vector2(-11.5f, 2.6f), new Vector2(-5.4f, -4.2f), new Vector2(-10.8f, -1.8f), new Vector2(-5.6f, 3.4f) }, 4, new Vector2(-8.4f, .4f)),
+                "kiiz_ui"));
             chapter.beats.Add(Beat("NPC_CHILDREN", "Балалармен «Соқыр теке» ойна", "DIA_K_CHILDREN", 100, "KEREY_GAME", BeatAction.SokyrTeke, "sokyr_teke"));
             var night = Beat("NPC_ELDER", "Кешкі от басына бар", "DIA_K_ELDER", 50, "KEREY_NIGHT", BeatAction.Campfire);
             night.campfire = new CampfireDefinition { title = "Көш алдындағы түн" };
@@ -202,6 +226,9 @@ namespace ATTILA.Editor
             south.choices.Add(Choice("Кеңесіп, бірге шешейік", "DIA_A_ENVOY_S_COUNCIL", "council", 20, 30));
             Say("DIA_A_ENVOY_S_GUARD", "Ұлы жүз елшісі", "envoy2", "Рақмет. Батырлар жолды күзетсе, керуен де, ел де тынады.");
             Say("DIA_A_ENVOY_S_COUNCIL", "Ұлы жүз елшісі", "envoy2", "Кеңесті ел азбайды. Түркістандағы жиында кездесеміз.");
+            Say("DIA_A_HERDER", "Малшы", "resident",
+                "Елшінің аты бос жүр, сұлтаным.",
+                "Атты бағанаға дейін жетелеп апарыңызшы — соңыңыздан ереді.");
             Say("DIA_A_CHILDREN", "Балалар", "child",
                 "Сұлтан аға, сақаңызды алыңыз! Асық атып көрейік.",
                 "Үш рет атасыз. Екі асықты шеңберден шығарсаңыз — жеңіс сіздікі!");
@@ -235,6 +262,9 @@ namespace ATTILA.Editor
             chapter.beats.Add(Beat("NPC_BI", "Бимен кеңес", "DIA_A_BI", 50, "ABYLAI_COUNCIL"));
             chapter.beats.Add(Beat("NPC_ENVOY_WEST", "Кіші жүз елшісін тыңда", "DIA_A_ENVOY_W", 40, "ABYLAI_WEST"));
             chapter.beats.Add(Beat("NPC_ENVOY_SOUTH", "Ұлы жүз елшісімен сөйлес", "DIA_A_ENVOY_S", 40, "ABYLAI_SOUTH"));
+            chapter.beats.Add(TaskBeat("NPC_HERDER", "Елшінің атын бағанаға жетеле", "DIA_A_HERDER", 60, "ABYLAI_HORSE", BeatAction.Escort,
+                Job("АТТЫ ЖЕТЕЛЕУ", "Ат соңыңнан ереді. Оны бағанаға дейін апар.", "Ат", new[] { "post" },
+                    new[] { new Vector2(11.6f, 6.4f) }, 1, new Vector2(6.4f, -10.6f))));
             chapter.beats.Add(Beat("NPC_CHILDREN", "Балалармен асық ат", "DIA_A_CHILDREN", 100, "ABYLAI_GAME", BeatAction.Asyk, "asyk"));
             var night = Beat("NPC_ELDER", "Кешкі от басына бар", "DIA_A_ELDER", 50, "ABYLAI_NIGHT", BeatAction.Campfire);
             night.campfire = new CampfireDefinition { title = "Түркістан алдындағы түн" };
@@ -261,6 +291,9 @@ namespace ATTILA.Editor
             Say("DIA_B_SMITH", "Ұста", "resident",
                 "Сауытыңыз жөнделді, найзаңыз қайралды.",
                 "Мына шапанды да алыңыз — таулы жерде түн суық.");
+            Say("DIA_B_SCOUT_TRACK", "Барлаушы", "envoy",
+                "Батыс жақтағы тастардың арасынан жау ізі көрінді.",
+                "Барып өз көзіңмен қара — біз мұнда күземіз.");
             Say("DIA_B_AISHA", "Айша", "woman",
                 "Ана мен бала таудағы жасырын жайлауға көшті.",
                 "Ауыл сізге сенеді, батыр. Аман оралыңыз.");
@@ -294,6 +327,9 @@ namespace ATTILA.Editor
             });
             chapter.beats.Add(Beat("NPC_COMMANDER", "Әскери кеңеске қатыс", "DIA_B_COUNCIL", 50, "KABANBAY_COUNCIL"));
             chapter.beats.Add(Beat("NPC_SMITH", "Ұстадан қару-жарақ ал", "DIA_B_SMITH", 30, "KABANBAY_SMITH", BeatAction.None, "sauyt"));
+            chapter.beats.Add(TaskBeat("NPC_SCOUT", "Батыстан жау ізін тап", "DIA_B_SCOUT_TRACK", 70, "KABANBAY_TRACK", BeatAction.Find,
+                Job("ЖАУ ІЗІН ТАБУ", "Батыстағы үлкен тастардың арасын қара.", "Жау ізі", new[] { "torsyk" },
+                    new[] { new Vector2(-16.2f, -6.4f) })));
             chapter.beats.Add(Beat("NPC_AISHA", "Ауылдың аман екенін біл", "DIA_B_AISHA", 30, "KABANBAY_AUL"));
             chapter.beats.Add(Beat("NPC_SCOUT", "Жекпе-жекке шық", "DIA_B_SCOUT", 150, "KABANBAY_DUEL", BeatAction.Duel, "dzungar_wars", "zhekpe_zhek"));
             var night = Beat("NPC_ELDER", "Жеңіс түні: от басына бар", "DIA_B_ELDER", 50, "KABANBAY_NIGHT", BeatAction.Campfire);

@@ -42,6 +42,12 @@ namespace ATTILA.Environment
         public Sprite sheep;
         public Sprite cart;
         public Sprite well;
+        public Sprite post;
+        [Tooltip("Task props by id: firewood, torsyk, kerege, uyk, shanyrak, felt.")] public List<NamedSprite> props = new();
+
+        [Header("Yurt assembly")]
+        public Texture2D yurtFrame;
+        public Texture2D yurtPoles;
 
         [Header("Scenes")]
         public Sprite campfireScene;
@@ -55,6 +61,7 @@ namespace ATTILA.Environment
         public static MvpArtSet Instance => cached != null ? cached : cached = Resources.Load<MvpArtSet>("Art/MvpArt");
 
         public Sprite Icon(string id) => icons.Find(icon => icon.id == id)?.sprite;
+        public Sprite Prop(string id) => props.Find(prop => prop.id == id)?.sprite;
 
         public Sprite Banner(string id) => id switch
         {

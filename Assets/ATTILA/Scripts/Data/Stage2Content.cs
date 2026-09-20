@@ -57,7 +57,20 @@ namespace ATTILA.Data
         public string sourceNote;
     }
 
-    public enum BeatAction { None, SokyrTeke, Asyk, Duel, Campfire, Map }
+    public enum BeatAction { None, SokyrTeke, Asyk, Duel, Campfire, Map, Collect, Find, Escort, Build }
+
+    /// <summary>A job done in the world rather than in a dialogue: gather, search, lead or assemble.</summary>
+    [Serializable]
+    public sealed class TaskDefinition
+    {
+        public string title;
+        [TextArea] public string hint;
+        [Tooltip("Prop sprite ids; one per point, or a single id used for every point.")] public string[] props;
+        [Tooltip("Pickup, search or start positions in world x/z.")] public Vector2[] points;
+        [Tooltip("Where the thing has to end up: the hitching post or the yurt site.")] public Vector2 goal;
+        public int required = 1;
+        public string itemLabel;
+    }
 
     [Serializable]
     public sealed class CampfireTopic
@@ -98,6 +111,7 @@ namespace ATTILA.Data
         public string[] unlockEntryIds;
         public CampfireDefinition campfire;
         public MapDefinition map;
+        public TaskDefinition task;
         public string checkpoint;
     }
 

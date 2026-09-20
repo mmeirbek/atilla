@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using ATTILA.CameraSystem;
 using ATTILA.Characters;
 using ATTILA.Data;
@@ -18,13 +17,10 @@ namespace ATTILA.Environment
     {
         private static readonly Vector3 Spawn = new(0f, 1f, 0f);
         private static readonly Vector3[] YurtSpots = { new(-12, 0, 9), new(12, 0, 10), new(-13, 0, -9), new(13, 0, -10) };
-        private static readonly Dictionary<Color, Material> SharedMaterials = new();
 
         private EnvironmentArtSet environmentArt;
         private MvpArtSet art;
         private ChapterDefinition chapter;
-        private readonly List<Mesh> meshes = new();
-        private Mesh roofMesh;
 
         private void Start()
         {
@@ -35,7 +31,7 @@ namespace ATTILA.Environment
             ApplyAtmosphere();
             BuildGround();
             BuildPath();
-            BuildYurts();
+            foreach (var spot in YurtSpots) YurtSite.Create(spot, Banner, YurtSite.Stages);
             BuildNature();
             BuildFence();
             BuildCampfire();
@@ -50,6 +46,8 @@ namespace ATTILA.Environment
             director.Initialize(player.GetComponent<PlayerController>());
         }
 
+        private string Banner => chapter != null ? chapter.banner : "red";
+
         private void ApplyAtmosphere()
         {
             RenderSettings.ambientMode = AmbientMode.Flat;
@@ -61,8 +59,8 @@ namespace ATTILA.Environment
 
         private void BuildGround()
         {
-            var ground = Primitive(PrimitiveType.Plane, "Ground", Vector3.zero, new Vector3(5.5f, 1, 5.5f), Color.white);
-            ground.GetComponent<Renderer>().sharedMaterial = Textured(art != null ? art.ground : null, new Vector2(26f, 26f), Color.white);
+            var ground = WorldArt.Primitive(PrimitiveType.Plane, "Ground", Vector3.zero, new Vector3(5.5f, 1, 5.5f));
+            ground.GetComponent<Renderer>().sharedMaterial = WorldArt.Textured(art != null ? art.ground : null, new Vector2(26f, 26f), Color.white);
         }
 
         private void BuildPath()
@@ -74,58 +72,27 @@ namespace ATTILA.Environment
             PathRibbon("Yurt approach east", new[] { new Vector3(0, 0, 5.5f), new Vector3(6, 0, 6f), new Vector3(12, 0, 6.9f) }, .85f, .058f, Color.white, art != null ? art.path : null);
         }
 
-        // ------------------------------------------------------------ yurts
-
-        private void BuildYurts()
+        private static void PathRibbon(string name, Vector3[] points, float halfWidth, float height, Color color, Texture2D texture)
         {
-            foreach (var spot in YurtSpots) CreateYurt(spot);
-        }
-
-        private void CreateYurt(Vector3 position)
-        {
-            var root = new GameObject("Yurt");
-            root.transform.position = position;
-            GroundPatch("Yurt earth clearing", position, new Vector2(3.4f, 3.5f), Color.white, art != null ? art.path : null);
-            var wall = Primitive(PrimitiveType.Cylinder, "Yurt wall", position + Vector3.up * .95f, new Vector3(5.4f, .95f, 5.4f), Color.white);
-            wall.GetComponent<Renderer>().sharedMaterial = Textured(art != null ? art.yurtWall : null, new Vector2(3f, 1f), Color.white);
-            wall.transform.SetParent(root.transform);
-            CreateRoof(root.transform);
-            var door = Primitive(PrimitiveType.Cube, "Yurt door", position + new Vector3(0, .8f, -2.71f), new Vector3(.95f, 1.6f, .12f), Color.white);
-            door.GetComponent<Renderer>().sharedMaterial = Textured(art != null ? art.yurtDoor : null, Vector2.one, Color.white);
-            door.transform.SetParent(root.transform);
-        }
-
-        private void CreateRoof(Transform parent)
-        {
-            if (roofMesh == null)
+            var vertices = new Vector3[points.Length * 2];
+            var uv = new Vector2[points.Length * 2];
+            var triangles = new int[(points.Length - 1) * 6];
+            float travelled = 0f;
+            for (int i = 0; i < points.Length; i++)
             {
-                const int sides = 12;
-                const float radius = 2.85f;
-                var vertices = new Vector3[sides + 1];
-                var uv = new Vector2[sides + 1];
-                var triangles = new int[sides * 3];
-                vertices[0] = new Vector3(0f, 3.4f, 0f);
-                uv[0] = new Vector2(.5f, .5f);
-                for (int i = 0; i < sides; i++)
-                {
-                    float angle = i * Mathf.PI * 2f / sides;
-                    vertices[i + 1] = new Vector3(Mathf.Cos(angle) * radius, 1.85f, Mathf.Sin(angle) * radius);
-                    uv[i + 1] = new Vector2(Mathf.Cos(angle) * .5f + .5f, Mathf.Sin(angle) * .5f + .5f);
-                    triangles[i * 3] = 0;
-                    triangles[i * 3 + 1] = (i + 1) % sides + 1;
-                    triangles[i * 3 + 2] = i + 1;
-                }
-                roofMesh = new Mesh { name = "Yurt roof", vertices = vertices, uv = uv, triangles = triangles };
-                roofMesh.RecalculateNormals();
-                roofMesh.RecalculateBounds();
-                meshes.Add(roofMesh);
+                Vector3 tangent = points[Mathf.Min(i + 1, points.Length - 1)] - points[Mathf.Max(0, i - 1)];
+                Vector3 side = Vector3.Cross(Vector3.up, tangent.normalized) * halfWidth;
+                if (i > 0) travelled += Vector3.Distance(points[i], points[i - 1]);
+                vertices[i * 2] = points[i] - side + Vector3.up * height;
+                vertices[i * 2 + 1] = points[i] + side + Vector3.up * height;
+                uv[i * 2] = new Vector2(0f, travelled * .35f);
+                uv[i * 2 + 1] = new Vector2(1f, travelled * .35f);
+                if (i == points.Length - 1) continue;
+                int a = i * 2, t = i * 6;
+                triangles[t] = a; triangles[t + 1] = a + 2; triangles[t + 2] = a + 1;
+                triangles[t + 3] = a + 1; triangles[t + 4] = a + 2; triangles[t + 5] = a + 3;
             }
-            var roof = new GameObject("Yurt roof", typeof(MeshFilter), typeof(MeshRenderer));
-            roof.transform.SetParent(parent, false);
-            roof.GetComponent<MeshFilter>().sharedMesh = roofMesh;
-            var renderer = roof.GetComponent<MeshRenderer>();
-            renderer.sharedMaterial = Textured(art != null ? art.yurtRoof : null, Vector2.one, Color.white);
-            renderer.shadowCastingMode = ShadowCastingMode.Off;
+            WorldArt.Mesh(name, null, vertices, uv, triangles, color, texture);
         }
 
         // ------------------------------------------------------------ nature, props and people
@@ -162,86 +129,60 @@ namespace ATTILA.Environment
         private void BuildCampfire()
         {
             var position = new Vector3(-3.6f, 0f, -1.6f);
-            GroundPatch("Fire clearing", position, new Vector2(2.6f, 2.4f), Color.white, art != null ? art.path : null);
-            var fire = new GameObject("Campfire");
-            fire.transform.position = position;
-            var renderer = fire.AddComponent<SpriteRenderer>();
-            renderer.sprite = art != null && art.campfire.Length > 0 ? art.campfire[0] : null;
-            fire.AddComponent<SpriteFlipbook>().Configure(art != null ? art.campfire : null, 9f);
-            fire.AddComponent<Billboard>();
-            Flat(art != null ? art.glow : null, position + Vector3.up * .04f, new Color(1f, .68f, .32f, .5f), 1.3f);
-            var pot = new GameObject("Kazan");
-            pot.transform.position = position + new Vector3(1.9f, 0f, .4f);
-            pot.AddComponent<SpriteRenderer>().sprite = art != null ? art.kazan : null;
-            pot.AddComponent<Billboard>();
-            AddShadow(pot.transform, .8f);
+            WorldArt.GroundPatch(null, position, new Vector2(2.6f, 2.4f), art != null ? art.path : null);
+            var fire = WorldArt.Prop(art != null && art.campfire.Length > 0 ? art.campfire[0] : null, position, .9f);
+            if (fire != null) fire.AddComponent<SpriteFlipbook>().Configure(art.campfire, 9f);
+            WorldArt.Decal(art != null ? art.glow : null, position + Vector3.up * .04f, new Color(1f, .68f, .32f, .5f), 1.3f);
+            WorldArt.Prop(art != null ? art.kazan : null, position + new Vector3(1.9f, 0f, .4f), .8f);
         }
 
         private void BuildHorses()
         {
-            var sprites = art != null ? art.horseBay : null;
-            Horse(new Vector3(10.6f, 0f, -3.4f), 0f, sprites);
+            Horse(new Vector3(10.6f, 0f, -3.4f), 0f, art != null ? art.horseBay : null);
             Horse(new Vector3(12.4f, 0f, -4.8f), 12f, art != null ? art.horseGrey : null);
             Horse(new Vector3(-10.8f, 0f, 6.4f), 0f, art != null ? art.horseGrey : null, true);
         }
 
         private void Horse(Vector3 position, float delay, Sprite[] frames, bool mirrored = false)
         {
-            var horse = new GameObject("Horse");
-            horse.transform.position = position;
-            var renderer = horse.AddComponent<SpriteRenderer>();
-            renderer.sprite = frames != null && frames.Length > 0 ? frames[0] : null;
-            renderer.flipX = mirrored;
+            var horse = WorldArt.Prop(frames != null && frames.Length > 0 ? frames[0] : null, position, 2.2f, mirrored);
+            if (horse == null) return;
             horse.AddComponent<SpriteFlipbook>().Configure(frames, .6f, delay);
-            horse.AddComponent<Billboard>();
-            AddShadow(horse.transform, 2.2f);
-            var collider = horse.AddComponent<BoxCollider>();
-            collider.size = new Vector3(2f, 1.6f, .9f);
-            collider.center = new Vector3(0f, .8f, 0f);
+            Solid(horse, new Vector3(2f, 1.6f, .9f));
         }
 
         /// <summary>Camels, sheep, a cart and a well: the aul reads as lived-in rather than as a set of markers.</summary>
         private void BuildLivestock()
         {
-            Prop(art != null && art.camel.Length > 0 ? art.camel[0] : null, new Vector3(-10.4f, 0f, -5.2f), 2.4f, art != null ? art.camel : null, .5f);
-            Prop(art != null && art.camel.Length > 0 ? art.camel[0] : null, new Vector3(-12.6f, 0f, -6.4f), 2.4f, art != null ? art.camel : null, .5f, 1.4f, true);
+            Camel(new Vector3(-10.4f, 0f, -5.2f), 0f);
+            Camel(new Vector3(-12.6f, 0f, -6.4f), 1.4f, true);
             foreach (var spot in new[] { new Vector3(14.5f, 0f, 4.4f), new Vector3(15.8f, 0f, 3.2f), new Vector3(13.4f, 0f, 2.6f), new Vector3(16.4f, 0f, 5.4f) })
-                Prop(art != null ? art.sheep : null, spot, 1.2f, null, 0f, 0f, spot.x > 15f);
-            Prop(art != null ? art.cart : null, new Vector3(-7.4f, 0f, 8.6f), 2.2f);
-            Prop(art != null ? art.well : null, new Vector3(4.6f, 0f, -6.4f), 1.6f);
+                WorldArt.Prop(art != null ? art.sheep : null, spot, 1.2f, spot.x > 15f);
+            Solid(WorldArt.Prop(art != null ? art.cart : null, new Vector3(-7.4f, 0f, 8.6f), 2.2f), new Vector3(2.2f, 1.4f, 1f));
+            Solid(WorldArt.Prop(art != null ? art.well : null, new Vector3(4.6f, 0f, -6.4f), 1.6f), new Vector3(1.6f, 1.6f, 1.2f));
         }
 
-        private void Prop(Sprite sprite, Vector3 position, float shadow, Sprite[] frames = null, float framesPerSecond = 0f, float delay = 0f, bool mirrored = false)
+        private void Camel(Vector3 position, float delay, bool mirrored = false)
         {
-            if (sprite == null) return;
-            var prop = new GameObject(sprite.name);
-            prop.transform.position = position;
-            var renderer = prop.AddComponent<SpriteRenderer>();
-            renderer.sprite = sprite;
-            renderer.flipX = mirrored;
-            prop.AddComponent<Billboard>();
-            if (frames != null && framesPerSecond > 0f) prop.AddComponent<SpriteFlipbook>().Configure(frames, framesPerSecond, delay);
-            AddShadow(prop.transform, shadow);
+            var camel = WorldArt.Prop(art != null && art.camel.Length > 0 ? art.camel[0] : null, position, 2.4f, mirrored);
+            if (camel == null) return;
+            camel.AddComponent<SpriteFlipbook>().Configure(art.camel, .5f, delay);
+            Solid(camel, new Vector3(2f, 1.8f, 1f));
+        }
+
+        private static void Solid(GameObject prop, Vector3 size)
+        {
+            if (prop == null) return;
             var collider = prop.AddComponent<BoxCollider>();
-            collider.size = new Vector3(Mathf.Max(.8f, shadow * .8f), 1.4f, .8f);
-            collider.center = new Vector3(0f, .7f, 0f);
+            collider.size = size;
+            collider.center = new Vector3(0f, size.y * .5f, 0f);
         }
 
         private void BuildBanners()
         {
-            var sprite = art != null ? art.Banner(chapter != null ? chapter.banner : "red") : null;
+            var sprite = art != null ? art.Banner(Banner) : null;
             foreach (var position in new[] { new Vector3(-2.9f, 0, -6f), new Vector3(2.9f, 0, 2f), new Vector3(-2.9f, 0, 10f), new Vector3(2.9f, 0, 13.6f) })
-                Banner(sprite, position);
-            foreach (var spot in YurtSpots) Banner(sprite, spot + new Vector3(2.2f, 0, -2.4f));
-        }
-
-        private void Banner(Sprite sprite, Vector3 position)
-        {
-            var banner = new GameObject("Banner");
-            banner.transform.position = position;
-            banner.AddComponent<SpriteRenderer>().sprite = sprite;
-            banner.AddComponent<Billboard>();
-            AddShadow(banner.transform, .5f);
+                WorldArt.Prop(sprite, position, .5f);
         }
 
         private GameObject BuildPlayer(HeroDefinition hero)
@@ -252,26 +193,31 @@ namespace ATTILA.Environment
             var visual = player.AddComponent<PlayerVisual>();
             visual.SetSpriteSet(LookLibrary.Load(hero != null ? hero.VisualSetId : "kerey"));
             player.AddComponent<PlayerController>();
-            AddShadow(player.transform, 1f);
+            WorldArt.AddShadow(player.transform, 1f);
             return player;
         }
 
         private void BuildPeople()
         {
             if (chapter == null) return;
-            foreach (var placement in chapter.npcs)
-            {
-                var definition = !string.IsNullOrEmpty(placement.npcId) ? Resources.Load<Stage2Content>("Data/Stage2Content").Npc(placement.npcId) : null;
-                string look = definition != null ? definition.look : placement.look;
-                var person = new GameObject(definition != null ? definition.id : "Aul figure " + look);
-                person.transform.position = new Vector3(placement.position.x, 1f, placement.position.y);
-                person.AddComponent<CharacterController>();
-                var visual = person.AddComponent<PlayerVisual>();
-                visual.SetSpriteSet(LookLibrary.Load(look));
-                visual.Face(Direction(placement.facing));
-                AddShadow(person.transform, 1f);
-                if (definition != null) person.AddComponent<NpcInteractable>().Configure(definition);
-            }
+            var content = Resources.Load<Stage2Content>("Data/Stage2Content");
+            foreach (var placement in chapter.npcs) Person(content, placement);
+        }
+
+        /// <summary>Spawns one villager; interactive when the placement names an NPC, a background figure otherwise.</summary>
+        public static GameObject Person(Stage2Content content, NpcPlacement placement)
+        {
+            var definition = !string.IsNullOrEmpty(placement.npcId) && content != null ? content.Npc(placement.npcId) : null;
+            string look = definition != null ? definition.look : placement.look;
+            var person = new GameObject(definition != null ? definition.id : "Aul figure " + look);
+            person.transform.position = new Vector3(placement.position.x, 1f, placement.position.y);
+            person.AddComponent<CharacterController>();
+            var visual = person.AddComponent<PlayerVisual>();
+            visual.SetSpriteSet(LookLibrary.Load(look));
+            visual.Face(Direction(placement.facing));
+            WorldArt.AddShadow(person.transform, 1f);
+            if (definition != null) person.AddComponent<NpcInteractable>().Configure(definition);
+            return person;
         }
 
         private static Vector3 Direction(FacingHint hint) => hint switch
@@ -299,177 +245,11 @@ namespace ATTILA.Environment
             return cameraObject;
         }
 
-        // ------------------------------------------------------------ shared helpers
-
-        /// <summary>Flat unlit material for a colour, shared between every caller in the scene.</summary>
-        public static Material SharedFlat(Color color)
-        {
-            if (SharedMaterials.TryGetValue(color, out var cached) && cached != null) return cached;
-            var material = new Material(Resources.Load<Material>("Art/PlaceholderFlat")) { name = "Flat " + color };
-            material.SetColor("_BaseColor", color);
-            SharedMaterials[color] = material;
-            return material;
-        }
-
-        /// <summary>Soft blob under a character or prop; grounds the billboarded sprites on the tilted ground.</summary>
-        public static void AddShadow(Transform parent, float scale = 1f)
-        {
-            var art = MvpArtSet.Instance;
-            if (art == null || art.shadow == null) return;
-            var shadow = new GameObject("Shadow");
-            shadow.transform.SetParent(parent, false);
-            shadow.transform.localPosition = new Vector3(0f, -.96f + .05f, 0f);
-            shadow.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
-            shadow.transform.localScale = Vector3.one * scale;
-            var renderer = shadow.AddComponent<SpriteRenderer>();
-            renderer.sprite = art.shadow;
-            renderer.sortingOrder = -1;
-        }
-
-        private static void Flat(Sprite sprite, Vector3 position, Color color, float scale)
-        {
-            if (sprite == null) return;
-            var go = new GameObject("Glow");
-            go.transform.position = position;
-            go.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
-            go.transform.localScale = Vector3.one * scale;
-            var renderer = go.AddComponent<SpriteRenderer>();
-            renderer.sprite = sprite;
-            renderer.color = color;
-            renderer.sortingOrder = -1;
-        }
-
-        private Material Textured(Texture2D texture, Vector2 tiling, Color color)
-        {
-            var material = new Material(Resources.Load<Material>("Art/PlaceholderFlat")) { name = "Textured " + (texture != null ? texture.name : "flat") };
-            material.SetColor("_BaseColor", color);
-            if (texture != null)
-            {
-                material.SetTexture("_BaseMap", texture);
-                material.SetTextureScale("_BaseMap", tiling);
-            }
-            return material;
-        }
-
         private void Place(GameObject prefab, Vector3 position, float yaw = 0f, float scale = 1f)
         {
             if (prefab == null) return;
             var instance = Instantiate(prefab, position, Quaternion.Euler(0, yaw, 0));
             instance.transform.localScale *= scale;
-        }
-
-        private void GroundPatch(string name, Vector3 position, Vector2 size, Color color, Texture2D texture)
-        {
-            const int count = 16;
-            var vertices = new Vector3[count + 1];
-            var uv = new Vector2[count + 1];
-            var triangles = new int[count * 3];
-            vertices[0] = position + Vector3.up * .014f;
-            uv[0] = new Vector2(position.x, position.z) * .25f;
-            for (int i = 0; i < count; i++)
-            {
-                float angle = i * Mathf.PI * 2f / count;
-                float radius = 1f + .06f * Mathf.Sin(i * 2.7f);
-                vertices[i + 1] = position + new Vector3(Mathf.Cos(angle) * size.x * radius, .014f, Mathf.Sin(angle) * size.y * radius);
-                uv[i + 1] = new Vector2(vertices[i + 1].x, vertices[i + 1].z) * .25f;
-                triangles[i * 3] = 0;
-                triangles[i * 3 + 1] = (i + 1) % count + 1;
-                triangles[i * 3 + 2] = i + 1;
-            }
-            GroundMesh(name, vertices, uv, triangles, color, texture);
-        }
-
-        private void PathRibbon(string name, Vector3[] points, float halfWidth, float height, Color color, Texture2D texture)
-        {
-            var vertices = new Vector3[points.Length * 2];
-            var uv = new Vector2[points.Length * 2];
-            var triangles = new int[(points.Length - 1) * 6];
-            float travelled = 0f;
-            for (int i = 0; i < points.Length; i++)
-            {
-                Vector3 tangent = points[Mathf.Min(i + 1, points.Length - 1)] - points[Mathf.Max(0, i - 1)];
-                Vector3 side = Vector3.Cross(Vector3.up, tangent.normalized) * halfWidth;
-                if (i > 0) travelled += Vector3.Distance(points[i], points[i - 1]);
-                vertices[i * 2] = points[i] - side + Vector3.up * height;
-                vertices[i * 2 + 1] = points[i] + side + Vector3.up * height;
-                uv[i * 2] = new Vector2(0f, travelled * .35f);
-                uv[i * 2 + 1] = new Vector2(1f, travelled * .35f);
-                if (i == points.Length - 1) continue;
-                int a = i * 2, t = i * 6;
-                triangles[t] = a; triangles[t + 1] = a + 2; triangles[t + 2] = a + 1;
-                triangles[t + 3] = a + 1; triangles[t + 4] = a + 2; triangles[t + 5] = a + 3;
-            }
-            GroundMesh(name, vertices, uv, triangles, color, texture);
-        }
-
-        private void GroundMesh(string name, Vector3[] vertices, Vector2[] uv, int[] triangles, Color color, Texture2D texture)
-        {
-            var mesh = new Mesh { name = name, vertices = vertices, uv = uv, triangles = triangles };
-            mesh.RecalculateNormals();
-            mesh.RecalculateBounds();
-            meshes.Add(mesh);
-            var patch = new GameObject(name, typeof(MeshFilter), typeof(MeshRenderer));
-            patch.GetComponent<MeshFilter>().sharedMesh = mesh;
-            var renderer = patch.GetComponent<MeshRenderer>();
-            renderer.sharedMaterial = texture != null ? Textured(texture, Vector2.one, color) : SharedFlat(color);
-            renderer.shadowCastingMode = ShadowCastingMode.Off;
-            renderer.receiveShadows = false;
-        }
-
-        private GameObject Primitive(PrimitiveType type, string name, Vector3 position, Vector3 scale, Color color)
-        {
-            var go = GameObject.CreatePrimitive(type);
-            go.name = name;
-            go.transform.position = position;
-            go.transform.localScale = scale;
-            var renderer = go.GetComponent<Renderer>();
-            renderer.sharedMaterial = SharedFlat(color);
-            renderer.shadowCastingMode = ShadowCastingMode.Off;
-            renderer.receiveShadows = false;
-            return go;
-        }
-
-        private void OnDestroy()
-        {
-            foreach (var mesh in meshes) if (mesh != null) Destroy(mesh);
-        }
-    }
-
-    /// <summary>Keeps a flat prop facing the tilted camera, the same way the character sprites do.</summary>
-    public sealed class Billboard : MonoBehaviour
-    {
-        private Camera view;
-
-        private void LateUpdate()
-        {
-            if (view == null) view = Camera.main;
-            if (view != null) transform.rotation = view.transform.rotation;
-        }
-    }
-
-    /// <summary>Cycles a sprite list on a SpriteRenderer: campfire flames, grazing horses.</summary>
-    public sealed class SpriteFlipbook : MonoBehaviour
-    {
-        private Sprite[] frames;
-        private float interval;
-        private float next;
-        private int index;
-        private SpriteRenderer target;
-
-        public void Configure(Sprite[] value, float framesPerSecond, float delay = 0f)
-        {
-            frames = value;
-            interval = framesPerSecond > 1f ? 1f / framesPerSecond : 1f / Mathf.Max(.05f, framesPerSecond);
-            target = GetComponent<SpriteRenderer>();
-            next = Time.time + delay;
-        }
-
-        private void Update()
-        {
-            if (frames == null || frames.Length < 2 || Time.time < next) return;
-            next = Time.time + interval;
-            index = (index + 1) % frames.Length;
-            target.sprite = frames[index];
         }
     }
 }

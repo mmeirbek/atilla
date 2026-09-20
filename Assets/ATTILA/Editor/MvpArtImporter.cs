@@ -125,6 +125,12 @@ namespace ATTILA.Editor
             set.sheep = SpriteAt("Props/sheep.png");
             set.cart = SpriteAt("Props/cart.png");
             set.well = SpriteAt("Props/well.png");
+            set.post = SpriteAt("Props/post.png");
+            set.yurtFrame = AssetDatabase.LoadAssetAtPath<Texture2D>(Root + "Environment/yurt_frame.png");
+            set.yurtPoles = AssetDatabase.LoadAssetAtPath<Texture2D>(Root + "Environment/yurt_poles.png");
+            set.props = new[] { "firewood", "torsyk", "kerege", "uyk", "shanyrak", "felt", "post" }
+                .Select(id => new MvpArtSet.NamedSprite { id = id, sprite = SpriteAt($"Props/{id}.png") })
+                .ToList();
             set.campfireScene = SpriteAt("Scenes/campfire.png");
             set.mapScene = SpriteAt("Scenes/map.png");
             set.asykScene = SpriteAt("Scenes/asyk_ring.png");

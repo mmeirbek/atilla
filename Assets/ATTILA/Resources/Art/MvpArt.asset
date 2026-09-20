@@ -43,6 +43,24 @@ MonoBehaviour:
   sheep: {fileID: 21300000, guid: bb748a7a515ac480c9b05d399b330a4c, type: 3}
   cart: {fileID: 21300000, guid: c35d7f742b8d347529b8b379b64e9496, type: 3}
   well: {fileID: 21300000, guid: 774adbd38e0fa4aacb0746e0b8d26e0b, type: 3}
+  post: {fileID: 21300000, guid: 22c5ee3742eb44e1a9df8c83f97d59e8, type: 3}
+  props:
+  - id: firewood
+    sprite: {fileID: 21300000, guid: f7c8f5474c08d46529465c74486a1a8a, type: 3}
+  - id: torsyk
+    sprite: {fileID: 21300000, guid: 33c22e2a878174012b4cc8e5b74479b0, type: 3}
+  - id: kerege
+    sprite: {fileID: 21300000, guid: b04342c07066a49fbb28a5170dff5834, type: 3}
+  - id: uyk
+    sprite: {fileID: 21300000, guid: 56a7beeeda6014a06b1a9c96ec092fec, type: 3}
+  - id: shanyrak
+    sprite: {fileID: 21300000, guid: b0374ce1baca940538bdfe38af21d93c, type: 3}
+  - id: felt
+    sprite: {fileID: 21300000, guid: 861d04adb523a41d1b19df1c168976be, type: 3}
+  - id: post
+    sprite: {fileID: 21300000, guid: 22c5ee3742eb44e1a9df8c83f97d59e8, type: 3}
+  yurtFrame: {fileID: 2800000, guid: e24c0b5f8d99e420fa5762baf2644d35, type: 3}
+  yurtPoles: {fileID: 2800000, guid: 103101818789f470e84cccf29712959d, type: 3}
   campfireScene: {fileID: 21300000, guid: 820d690cf04e24255bc20b9a6499f7f0, type: 3}
   mapScene: {fileID: 21300000, guid: 99098ac4fb8814a9cbdaad31626af64f, type: 3}
   asykScene: {fileID: 21300000, guid: 1e005f47e551e4d37a3262b6ec1a1297, type: 3}

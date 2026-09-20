@@ -63,7 +63,7 @@ namespace ATTILA.Gameplay
                 stone.transform.localScale = new Vector3(.5f, .12f, .5f);
                 stone.transform.rotation = Quaternion.Euler(0f, angle * Mathf.Rad2Deg, 0f);
                 Destroy(stone.GetComponent<Collider>());
-                stone.GetComponent<Renderer>().sharedMaterial = AulPrototypeBuilder.SharedFlat(new Color(.86f, .78f, .58f));
+                stone.GetComponent<Renderer>().sharedMaterial = WorldArt.SharedFlat(new Color(.86f, .78f, .58f));
             }
             string[] looks = { "child", "child_girl", "child" };
             for (int i = 0; i < looks.Length; i++)
@@ -74,7 +74,7 @@ namespace ATTILA.Gameplay
                 go.transform.position = Centre + new Vector3(Mathf.Cos(angle) * 4.5f, 0f, Mathf.Sin(angle) * 4.5f);
                 var visual = go.AddComponent<PlayerVisual>();
                 visual.SetSpriteSet(LookLibrary.Load(looks[i]));
-                AulPrototypeBuilder.AddShadow(go.transform);
+                WorldArt.AddShadow(go.transform);
                 runners.Add(new Runner { Transform = go.transform, Visual = visual, Direction = new Vector3(Mathf.Sin(angle), 0f, Mathf.Cos(angle)) });
             }
             clapMarker = new GameObject("Clap marker");
