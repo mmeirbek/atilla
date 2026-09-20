@@ -49,6 +49,12 @@ namespace ATTILA.Environment
         public Texture2D yurtFrame;
         public Texture2D yurtPoles;
 
+        [Header("City")]
+        public Texture2D clay;
+        public Texture2D cityWall;
+        public Texture2D awning;
+        public Texture2D tiles;
+
         [Header("Scenes")]
         public Sprite campfireScene;
         public Sprite mapScene;

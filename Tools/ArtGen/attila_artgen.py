@@ -66,6 +66,10 @@ def main():
     save(env.post(), "Props", "post.png")
     save(env.yurt_frame_texture(), "Environment", "yurt_frame.png")
     save(env.yurt_poles_texture(), "Environment", "yurt_poles.png")
+    save(env.clay_texture(), "Environment", "clay.png")
+    save(env.city_wall_texture(), "Environment", "city_wall.png")
+    save(env.awning_texture(), "Environment", "awning.png")
+    save(env.tile_texture(), "Environment", "tiles.png")
 
     save(env.campfire_scene(), "Scenes", "campfire.png")
     save(env.asyk_scene(), "Scenes", "asyk_ring.png")

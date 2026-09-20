@@ -366,6 +366,63 @@ def post():
     return outlined(c.image)
 
 
+def clay_texture():
+    width, height = 64, 64
+    noise = fractal(width, height, 33, cells=(16, 8, 4))
+    image = Image.new("RGB", (width, height))
+    px = image.load()
+    palette = [(178, 142, 100), (192, 158, 114), (206, 172, 126), (216, 186, 140)]
+    for y in range(height):
+        for x in range(width):
+            px[x, y] = palette[dither(noise[y][x], x, y, len(palette))]
+    draw = ImageDraw.Draw(image)
+    for row, y in enumerate(range(0, height, 8)):
+        draw.line([0, y, width, y], fill=(156, 122, 84))
+        for x in range(row % 2 * 8, width, 16):
+            draw.line([x, y, x, y + 8], fill=(160, 126, 88))
+    return image
+
+
+def city_wall_texture():
+    width, height = 64, 64
+    image = clay_texture()
+    draw = ImageDraw.Draw(image)
+    draw.rectangle([0, 0, width - 1, 5], fill=(150, 116, 78))
+    for x in range(0, width, 16):
+        draw.rectangle([x + 2, 0, x + 9, 3], fill=(196, 162, 118))
+    for y in range(18, height, 22):
+        draw.rectangle([6, y, 12, y + 10], fill=(120, 92, 62))
+        draw.rectangle([46, y, 52, y + 10], fill=(120, 92, 62))
+    return image
+
+
+def tile_texture():
+    size = 64
+    image = Image.new("RGB", (size, size), (40, 124, 138))
+    draw = ImageDraw.Draw(image)
+    for y in range(0, size, 16):
+        for x in range(0, size, 16):
+            shift = 8 if (y // 16) % 2 else 0
+            x0 = (x + shift) % size
+            draw.rectangle([x0 + 1, y + 1, x0 + 14, y + 14], fill=(52, 150, 162))
+            draw.polygon([(x0 + 8, y + 3), (x0 + 13, y + 8), (x0 + 8, y + 13), (x0 + 3, y + 8)], fill=(214, 226, 226))
+            draw.polygon([(x0 + 8, y + 5), (x0 + 11, y + 8), (x0 + 8, y + 11), (x0 + 5, y + 8)], fill=(34, 104, 120))
+            draw.point([(x0 + 8, y + 8)], fill=GOLD)
+    for y in range(0, size, 16):
+        draw.line([0, y, size, y], fill=(28, 92, 108))
+    return image
+
+
+def awning_texture():
+    width, height = 32, 32
+    image = Image.new("RGB", (width, height), (196, 62, 52))
+    draw = ImageDraw.Draw(image)
+    for x in range(0, width, 8):
+        draw.rectangle([x, 0, x + 3, height], fill=(226, 206, 174))
+    draw.rectangle([0, height - 5, width, height], fill=GOLD)
+    return image
+
+
 def yurt_frame_texture():
     width, height = 128, 48
     image = Image.new("RGB", (width, height), (196, 178, 144))

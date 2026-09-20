@@ -128,6 +128,10 @@ namespace ATTILA.Editor
             set.post = SpriteAt("Props/post.png");
             set.yurtFrame = AssetDatabase.LoadAssetAtPath<Texture2D>(Root + "Environment/yurt_frame.png");
             set.yurtPoles = AssetDatabase.LoadAssetAtPath<Texture2D>(Root + "Environment/yurt_poles.png");
+            set.clay = AssetDatabase.LoadAssetAtPath<Texture2D>(Root + "Environment/clay.png");
+            set.cityWall = AssetDatabase.LoadAssetAtPath<Texture2D>(Root + "Environment/city_wall.png");
+            set.awning = AssetDatabase.LoadAssetAtPath<Texture2D>(Root + "Environment/awning.png");
+            set.tiles = AssetDatabase.LoadAssetAtPath<Texture2D>(Root + "Environment/tiles.png");
             set.props = new[] { "firewood", "torsyk", "kerege", "uyk", "shanyrak", "felt", "post" }
                 .Select(id => new MvpArtSet.NamedSprite { id = id, sprite = SpriteAt($"Props/{id}.png") })
                 .ToList();

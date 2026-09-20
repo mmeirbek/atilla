@@ -61,8 +61,22 @@ namespace ATTILA.NPC
             if (director.IsModal) { ui?.SetPrompt(string.Empty); return; }
             // The key press that closed a dialogue must not open the next one in the same breath.
             if (ui != null && Time.unscaledTime - ui.ClosedAt < .25f) { ui.SetPrompt(string.Empty); return; }
+            var travel = director.NeedsTravel ? NearestTravelPoint() : null;
+            if (travel != null)
+            {
+                ui?.SetPrompt("E  ·  ЖОЛҒА ШЫҒУ");
+                if (Input.GetKeyDown(KeyCode.E)) director.OpenTravel();
+                return;
+            }
             ui?.SetPrompt(nearest == null ? string.Empty : $"E  ·  {nearest.DisplayName}");
             if (nearest != null && Input.GetKeyDown(KeyCode.E)) nearest.Interact();
+        }
+
+        private TravelPoint NearestTravelPoint()
+        {
+            foreach (var point in FindObjectsByType<TravelPoint>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+                if (Vector3.Distance(transform.position, point.transform.position) <= TravelPoint.Radius) return point;
+            return null;
         }
     }
 
@@ -87,6 +101,14 @@ namespace ATTILA.NPC
         private void LateUpdate()
         {
             var director = StoryDirector.Active;
+            if (director != null && director.NeedsTravel)
+            {
+                var point = FindAnyObjectByType<TravelPoint>();
+                targetId = null;
+                marker.enabled = point != null && !director.IsModal;
+                if (point != null) Hover(point.transform);
+                return;
+            }
             string wanted = director != null ? director.TargetNpcId : null;
             if (string.IsNullOrEmpty(wanted)) { marker.enabled = false; targetId = null; return; }
             if (wanted != targetId || target == null)
@@ -98,7 +120,12 @@ namespace ATTILA.NPC
             }
             if (target == null) { marker.enabled = false; return; }
             marker.enabled = !director.IsModal;
-            marker.transform.position = target.position + new Vector3(0f, 2.5f + Mathf.Sin(Time.time * 3f) * .12f, 0f);
+            Hover(target);
+        }
+
+        private void Hover(Transform above)
+        {
+            marker.transform.position = above.position + new Vector3(0f, 2.5f + Mathf.Sin(Time.time * 3f) * .12f, 0f);
             var camera = Camera.main;
             if (camera != null) marker.transform.rotation = camera.transform.rotation;
         }

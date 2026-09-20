@@ -3,6 +3,7 @@ using ATTILA.Audio;
 using ATTILA.Characters;
 using ATTILA.Core;
 using ATTILA.Data;
+using ATTILA.Environment;
 using ATTILA.NPC;
 using ATTILA.Player;
 using ATTILA.Quest;
@@ -25,10 +26,15 @@ namespace ATTILA.Gameplay
         public ChapterDefinition Chapter { get; private set; }
         public Stage2Content Content { get; private set; }
         public bool IsModal { get; private set; }
-        public string TargetNpcId => Quest != null && !Quest.IsComplete ? Quest.Current?.npcId : null;
+        public string TargetNpcId => Quest != null && !Quest.IsComplete && !NeedsTravel ? Quest.Current?.npcId : null;
+
+        /// <summary>True while the next beat waits in another place, so the road is the objective.</summary>
+        public bool NeedsTravel => Quest != null && Quest.Current != null && AulPrototypeBuilder.Active != null
+                                   && Quest.Current.location != AulPrototypeBuilder.Active.Current;
 
         private PlayerController player;
         private SokyrTekeMinigame sokyrTeke;
+        private BaigeMinigame baige;
         private AsykMinigame asyk;
         private DuelMinigame duel;
         private int chapterXp;
@@ -55,6 +61,7 @@ namespace ATTILA.Gameplay
             player.gameObject.AddComponent<PlayerInteraction>();
             sokyrTeke = gameObject.AddComponent<SokyrTekeMinigame>();
             asyk = gameObject.AddComponent<AsykMinigame>();
+            baige = gameObject.AddComponent<BaigeMinigame>();
             duel = gameObject.AddComponent<DuelMinigame>();
             AudioService.PlayMusic(MusicTrack.Aul);
             RefreshUi();
@@ -69,7 +76,7 @@ namespace ATTILA.Gameplay
         {
             if (IsModal || Ui.DialogueActive) return;
             var beat = Quest.Current;
-            if (beat != null && npc.Id == beat.npcId)
+            if (beat != null && npc.Id == beat.npcId && !NeedsTravel)
             {
                 var dialogue = !string.IsNullOrEmpty(beat.altFlag) && Quest.HasFlag(beat.altFlag)
                     ? Content.Dialogue(beat.altDialogueId) ?? Content.Dialogue(beat.dialogueId)
@@ -122,13 +129,18 @@ namespace ATTILA.Gameplay
                     BeginOverlay(() => asyk.Begin(() => FinishOverlay(() => CompleteBeat(beat)), () => FinishOverlay(() => Failed(beat, "Асықтар шеңберде қалды. Тағы көрейік пе?"))));
                     break;
                 case BeatAction.Duel:
-                    BeginOverlay(() => duel.Begin(Hero, () => FinishOverlay(() => CompleteBeat(beat)), () => FinishOverlay(() => Failed(beat, "Жекпе-жекте жеңілдің. Қайта шығасың ба?"))));
+                    BeginOverlay(() => duel.Begin(Hero, Chapter.duelAllyMinUnity > 0 && Quest.Unity >= Chapter.duelAllyMinUnity, () => FinishOverlay(() => CompleteBeat(beat)), () => FinishOverlay(() => Failed(beat, "Жекпе-жекте жеңілдің. Қайта шығасың ба?"))));
                     break;
                 case BeatAction.Campfire:
                     BeginOverlay(() => CampfireScreen.Show(Ui.OverlayRoot, this, beat.campfire, () => FinishOverlay(() => CompleteBeat(beat))));
                     break;
                 case BeatAction.Map:
                     BeginOverlay(() => MapScreen.Show(Ui.OverlayRoot, beat.map, () => FinishOverlay(() => CompleteBeat(beat))));
+                    break;
+                case BeatAction.Baige:
+                    // Ridden in the world like соқыр теке: movement stays, conversations pause.
+                    IsModal = true;
+                    baige.Begin(beat.task, player, () => { IsModal = false; CompleteBeat(beat); }, () => Failed(beat, "Қарсылас озып кетті. Тағы шабамыз ба?"));
                     break;
                 case BeatAction.Collect:
                     RunTask<CollectTask>(beat);
@@ -216,10 +228,40 @@ namespace ATTILA.Gameplay
             Ui.SetXp(SaveService.Current.currentXP);
         }
 
+        /// <summary>Opens the road map and rebuilds the world at the place the story is waiting in.</summary>
+        public void OpenTravel()
+        {
+            if (IsModal || !NeedsTravel) return;
+            var builder = AulPrototypeBuilder.Active;
+            var destination = Quest.Current.location;
+            var route = new MapDefinition
+            {
+                title = "ЖОЛҒА ШЫҒУ",
+                goal = AulPrototypeBuilder.LocationName(destination) + " бару",
+                startLabel = AulPrototypeBuilder.LocationName(builder.Current),
+                endLabel = AulPrototypeBuilder.LocationName(destination),
+                route = new[]
+                {
+                    AulPrototypeBuilder.MapPoint(builder.Current),
+                    Vector2.Lerp(AulPrototypeBuilder.MapPoint(builder.Current), AulPrototypeBuilder.MapPoint(destination), .5f) + new Vector2(.03f, 0f),
+                    AulPrototypeBuilder.MapPoint(destination)
+                }
+            };
+            BeginOverlay(() => MapScreen.Show(Ui.OverlayRoot, route, () => FinishOverlay(() =>
+            {
+                builder.Travel(destination);
+                Ui.ShowToast(AulPrototypeBuilder.LocationName(destination), 2.5f);
+                RefreshUi();
+            })));
+        }
+
         public void RefreshUi()
         {
             var beat = Quest.Current;
-            Ui.SetObjective(beat != null ? beat.objective : "Тарау аяқталды", Quest.BeatIndex, Quest.BeatCount);
+            string objective = beat == null ? "Тарау аяқталды"
+                : NeedsTravel ? "Жолға шық: " + AulPrototypeBuilder.LocationName(beat.location)
+                : beat.objective;
+            Ui.SetObjective(objective, Quest.BeatIndex, Quest.BeatCount);
             Ui.SetXp(SaveService.Current.currentXP);
         }
 

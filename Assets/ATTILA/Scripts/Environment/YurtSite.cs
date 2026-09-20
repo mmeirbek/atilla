@@ -23,6 +23,7 @@ namespace ATTILA.Environment
         public static YurtSite Create(Vector3 position, string banner, int startStage)
         {
             var site = new GameObject("Yurt").AddComponent<YurtSite>();
+            if (WorldArt.Root != null) site.transform.SetParent(WorldArt.Root, true);
             site.transform.position = position;
             site.bannerId = banner;
             WorldArt.GroundPatch(site.transform, position, new Vector2(3.4f, 3.5f), MvpArtSet.Instance != null ? MvpArtSet.Instance.path : null);

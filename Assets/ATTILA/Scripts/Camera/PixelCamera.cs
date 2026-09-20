@@ -66,6 +66,12 @@ namespace ATTILA.CameraSystem
             view.texture = texture;
         }
 
+        /// <summary>Each place has its own light; the tint multiplies the finished pixel image.</summary>
+        public void SetTint(Color tint)
+        {
+            if (view != null) view.color = tint;
+        }
+
         /// <summary>Renders the world into the buffer immediately; the validation screenshots need it up to date.</summary>
         public void RenderNow()
         {

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using ATTILA.Audio;
 using ATTILA.Characters;
 using ATTILA.Environment;
@@ -25,15 +26,17 @@ namespace ATTILA.Gameplay
         private Image heroImage, enemyImage, heroBar, enemyBar;
         private Text logText, heroHealthText, enemyHealthText, feintText, remedyText;
         private Button[] actions;
+        private Button allyButton;
         private int health = MaxHealth, enemy = EnemyHealth;
         private int feintCooldown, remedies = 1;
-        private bool guarding, enemyWindingUp;
+        private bool guarding, enemyWindingUp, ally, allyStrike;
+        private Image allyImage;
         private Phase phase = Phase.Player;
         private float timer;
         private Vector2 heroHome, enemyHome;
         private float heroShake, enemyShake;
 
-        public void Begin(HeroDefinition hero, Action onWon, Action onLost)
+        public void Begin(HeroDefinition hero, bool allySupport, Action onWon, Action onLost)
         {
             won = onWon;
             lost = onLost;
@@ -44,6 +47,8 @@ namespace ATTILA.Gameplay
             guarding = false;
             enemyWindingUp = false;
             phase = Phase.Player;
+            ally = allySupport;
+            allyStrike = allySupport;
             Build(hero);
         }
 
@@ -59,6 +64,7 @@ namespace ATTILA.Gameplay
             heroHome = new Vector2(-460, -40);
             enemyHome = new Vector2(460, -40);
             heroImage = Fighter(hero != null ? hero.VisualSetId : "kabanbay", FacingDirection.E, heroHome);
+            if (ally) allyImage = Fighter("warrior", FacingDirection.E, heroHome + new Vector2(-190, -70));
             enemyImage = Fighter("raider", FacingDirection.W, enemyHome);
 
             var heroPanel = GameUiKit.InkPanel(root.transform, new Vector2(0f, 1f), new Vector2(620, 150), new Vector2(340, -110));
@@ -71,23 +77,31 @@ namespace ATTILA.Gameplay
             logPanel.Border.raycastTarget = false;
             logText = GameUiKit.Label(logPanel.Content, "Жекпе-жек басталды.", 26, MenuUiKit.Cream, TextAnchor.MiddleCenter, 20, 20, 1040, 44);
 
-            var actionPanel = GameUiKit.InkPanel(root.transform, new Vector2(.5f, 0f), new Vector2(1240, 200), new Vector2(0, 130));
-            actions = new Button[4];
-            actions[0] = Action("ШАБУЫЛ", "18–28 зақым", -450, () => PlayerTurn(0));
-            actions[1] = Action("ҚОРҒАНУ", "зақым екі есе аз", -150, () => PlayerTurn(1));
-            actions[2] = Action("АЙЛА", "35 зақым, 60%", 150, () => PlayerTurn(2));
-            actions[3] = Action("ШИПА", "+34 күш", 450, () => PlayerTurn(3));
-            feintText = actions[2].GetComponentInChildren<Text>();
-            remedyText = actions[3].GetComponentInChildren<Text>();
-
-            Button Action(string label, string hint, float x, Action click)
+            var actionPanel = GameUiKit.InkPanel(root.transform, new Vector2(.5f, 0f), new Vector2(1560, 210), new Vector2(0, 130));
+            var labels = new List<(string label, string hint, int index)>
             {
-                var button = MenuPixelButton.Create(actionPanel.Content, label, click);
-                UiFactory.SetRect(button.GetComponent<RectTransform>(), new Vector2(.5f, .62f), new Vector2(300, 98), new Vector2(x, 0));
-                var note = GameUiKit.Label(actionPanel.Content, hint, 20, GameUiKit.Muted, TextAnchor.MiddleCenter, 0, 0, 280, 30);
-                note.rectTransform.anchorMin = note.rectTransform.anchorMax = new Vector2(.5f, .2f);
+                ("ШАБУЫЛ", "18–28 зақым", 0),
+                ("ҚОРҒАНУ", "зақым екі есе аз", 1),
+                ("АЙЛА", "35 зақым, 60%", 2),
+                ("ШИПА", "+34 күш", 3)
+            };
+            if (ally) labels.Add(("КӨМЕК", "жасақ соққысы: 40", 4));
+            actions = new Button[labels.Count];
+            // One evenly spaced row, so a fifth button never lands on top of the others.
+            float span = 1440f / labels.Count;
+            for (int i = 0; i < labels.Count; i++)
+            {
+                var entry = labels[i];
+                float x = -720f + span * (i + .5f);
+                var button = MenuPixelButton.Create(actionPanel.Content, entry.label, () => PlayerTurn(entry.index));
+                UiFactory.SetRect(button.GetComponent<RectTransform>(), new Vector2(.5f, .62f), new Vector2(span - 24f, 96), new Vector2(x, 0));
+                var note = GameUiKit.Label(actionPanel.Content, entry.hint, 20, GameUiKit.Muted, TextAnchor.MiddleCenter, 0, 0, span - 24f, 30);
+                note.rectTransform.anchorMin = note.rectTransform.anchorMax = new Vector2(.5f, .18f);
                 note.rectTransform.anchoredPosition = new Vector2(x, 0);
-                return button;
+                actions[i] = button;
+                if (entry.index == 2) feintText = button.GetComponentInChildren<Text>();
+                if (entry.index == 3) remedyText = button.GetComponentInChildren<Text>();
+                if (entry.index == 4) allyButton = button;
             }
 
             Refresh();
@@ -132,6 +146,7 @@ namespace ATTILA.Gameplay
             {
                 actions[2].interactable = feintCooldown <= 0;
                 actions[3].interactable = remedies > 0;
+                if (allyButton != null) allyButton.interactable = allyStrike;
             }
         }
 
@@ -168,11 +183,18 @@ namespace ATTILA.Gameplay
                         AudioService.Play(Sfx.Fail, .6f);
                     }
                     break;
-                default:
+                case 3:
                     remedies--;
                     health = Mathf.Min(MaxHealth, health + 34);
                     logText.text = "Жарақатыңды таңып, күш жинадың: +34.";
                     AudioService.Play(Sfx.Reward, .6f);
+                    break;
+                default:
+                    allyStrike = false;
+                    enemy -= 40;
+                    enemyShake = .6f;
+                    logText.text = "Жасақ жебесі жауды дәл тапты: 40 зақым!";
+                    AudioService.Play(Sfx.Hit, 1f, .7f);
                     break;
             }
             phase = Phase.Resolving;
@@ -202,6 +224,11 @@ namespace ATTILA.Gameplay
             {
                 int damage = UnityEngine.Random.Range(12, 21);
                 if (guarding) damage /= 2;
+                if (ally && UnityEngine.Random.value < .3f)
+                {
+                    damage /= 2;
+                    logText.text = "Жасақтас қалқанымен соққыны бөгеді. ";
+                }
                 health -= damage;
                 heroShake = .3f;
                 logText.text = $"Жаудың соққысы: {damage} зақым.";

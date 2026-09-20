@@ -63,7 +63,19 @@ namespace ATTILA.Editor
             foreach (var chapter in content.chapters)
             {
                 Require(chapter.beats.Count >= 4, chapter.id + " has beats");
-                var placed = chapter.npcs.Where(p => !string.IsNullOrEmpty(p.npcId)).Select(p => p.npcId).ToHashSet();
+                var placed = chapter.npcs.Where(p => !string.IsNullOrEmpty(p.npcId)).Select(p => $"{p.npcId}@{p.location}").ToHashSet();
+                foreach (var placement in chapter.allies)
+                    Require(LookSet(placement.look) != null, $"{chapter.id}: ally look {placement.look}");
+                if (chapter.allyMinUnity > 0)
+                {
+                    Require(chapter.allies.Count > 0, chapter.id + ": allies exist when a threshold is set");
+                    Require(!string.IsNullOrEmpty(chapter.allyMessage), chapter.id + ": allies announce themselves");
+                    int earnable = 0;
+                    foreach (var dialogue in content.dialogues)
+                        foreach (var choice in dialogue.choices)
+                            earnable += choice.unity;
+                    Require(earnable >= chapter.allyMinUnity, chapter.id + ": unity threshold is reachable from choices");
+                }
                 foreach (var placement in chapter.npcs)
                 {
                     string look = !string.IsNullOrEmpty(placement.npcId) ? content.Npc(placement.npcId)?.look : placement.look;
@@ -71,7 +83,7 @@ namespace ATTILA.Editor
                 }
                 foreach (var beat in chapter.beats)
                 {
-                    Require(placed.Contains(beat.npcId), $"{chapter.id}: beat NPC {beat.npcId} is placed in the aul");
+                    Require(placed.Contains($"{beat.npcId}@{beat.location}"), $"{chapter.id}: {beat.npcId} stands in {beat.location} for this beat");
                     Require(content.Dialogue(beat.dialogueId) != null, $"{chapter.id}: dialogue {beat.dialogueId}");
                     Require(!string.IsNullOrEmpty(beat.objective), $"{chapter.id}: objective text for {beat.npcId}");
                     foreach (var entry in beat.unlockEntryIds ?? Array.Empty<string>())
@@ -85,7 +97,7 @@ namespace ATTILA.Editor
                             Require(string.IsNullOrEmpty(topic.unlockEntryId) || content.Entry(topic.unlockEntryId) != null, $"{chapter.id}: topic entry {topic.unlockEntryId}");
                         }
                     }
-                    if (beat.action is BeatAction.Collect or BeatAction.Find or BeatAction.Escort or BeatAction.Build)
+                    if (beat.action is BeatAction.Collect or BeatAction.Find or BeatAction.Escort or BeatAction.Build or BeatAction.Baige)
                     {
                         Require(beat.task != null, $"{chapter.id}: task data for {beat.action}");
                         Require(beat.task.points != null && beat.task.points.Length > 0, $"{chapter.id}: task points for {beat.action}");
@@ -209,36 +221,47 @@ namespace ATTILA.Editor
                 case 2:
                     CheckWorld();
                     Capture($"03-{role}-aul");
-                    Talk();
+                    Go(LocationId.Steppe);
                     break;
                 case 3:
+                    Capture($"03b-{role}-steppe");
+                    Go(LocationId.City);
+                    break;
+                case 4:
+                    Capture($"03c-{role}-city");
+                    Go(LocationId.Aul);
+                    break;
+                case 5:
+                    Talk();
+                    break;
+                case 6:
                     Capture($"04-{role}-dialogue");
                     Skip();
                     break;
-                case 4:
+                case 7:
                     Capture($"05-{role}-dialogue-choice");
                     Skip();
                     break;
-                case 5:
+                case 8:
                     Require(Director.Quest.BeatIndex > 0 || Director.Ui.DialogueActive, "First beat progresses after the dialogue");
                     StartTask();
                     break;
-                case 6:
+                case 9:
                     Capture($"05b-{role}-task");
                     Close();
                     Screens();
                     break;
-                case 7:
+                case 10:
                     Capture($"06-{role}-campfire");
                     Close();
                     MapScreen.Show(Director.Ui.OverlayRoot, FindMap(), () => { });
                     break;
-                case 8:
+                case 11:
                     Capture($"07-{role}-map");
                     Close();
                     Minigame();
                     break;
-                case 9:
+                case 12:
                     Capture($"08-{role}-minigame");
                     Close();
                     // Open a couple of entries so the screenshot shows both states.
@@ -246,22 +269,22 @@ namespace ATTILA.Editor
                     SaveService.Unlock("sokyr_teke");
                     EncyclopediaScreen.Show(Director.Ui.OverlayRoot);
                     break;
-                case 10:
+                case 13:
                     Capture($"09-{role}-encyclopedia");
                     Close();
                     WardrobeScreen.Show(Director.Ui.OverlayRoot);
                     break;
-                case 11:
+                case 14:
                     Capture($"10-{role}-wardrobe");
                     Close();
                     SettingsScreen.Show(Director.Ui.OverlayRoot);
                     break;
-                case 12:
+                case 15:
                     Capture($"11-{role}-settings");
                     Close();
                     Director.Ui.ShowFinale(Director.Chapter, Director.Chapter.finaleText, 320, 2, () => { }, () => { }, () => { });
                     break;
-                case 13:
+                case 16:
                     Capture($"12-{role}-finale");
                     Close();
                     role++;
@@ -297,6 +320,13 @@ namespace ATTILA.Editor
             Require(npcs.Length >= 4, "Chapter NPCs are placed");
             Require(UnityEngine.Object.FindObjectsByType<SpriteFlipbook>(FindObjectsInactive.Exclude, FindObjectsSortMode.None).Length > 0, "Animated props exist");
             Require((player.GetComponent<CharacterController>().Move(Vector3.down * .2f) & CollisionFlags.Below) != 0, "Ground blocks the player");
+        }
+
+        /// <summary>Rebuilds the world in another place, the same call the travel map makes.</summary>
+        private static void Go(LocationId location)
+        {
+            AulPrototypeBuilder.Active.Travel(location);
+            Require(AulPrototypeBuilder.Active.Current == location, "World rebuilds in " + location);
         }
 
         private static void Talk()
@@ -356,11 +386,16 @@ namespace ATTILA.Editor
 
         private static void Minigame()
         {
-            var action = Director.Chapter.beats.FirstOrDefault(b => b.action is BeatAction.Asyk or BeatAction.Duel or BeatAction.SokyrTeke)?.action ?? BeatAction.None;
+            var action = Director.Chapter.beats.FirstOrDefault(b => b.action is BeatAction.Asyk or BeatAction.Duel or BeatAction.SokyrTeke or BeatAction.Baige)?.action ?? BeatAction.None;
             Require(action != BeatAction.None, "Chapter has a mini-game");
             var host = Director.gameObject;
-            if (action == BeatAction.Asyk) host.GetComponent<AsykMinigame>().Begin(() => { }, () => { });
-            else if (action == BeatAction.Duel) host.GetComponent<DuelMinigame>().Begin(Director.Hero, () => { }, () => { });
+            if (action == BeatAction.Baige)
+            {
+                var course = Director.Chapter.beats.First(b => b.action == BeatAction.Baige).task;
+                host.GetComponent<BaigeMinigame>().Begin(course, UnityEngine.Object.FindAnyObjectByType<PlayerController>(), () => { }, () => { });
+            }
+            else if (action == BeatAction.Asyk) host.GetComponent<AsykMinigame>().Begin(() => { }, () => { });
+            else if (action == BeatAction.Duel) host.GetComponent<DuelMinigame>().Begin(Director.Hero, true, () => { }, () => { });
             else host.GetComponent<SokyrTekeMinigame>().Begin(UnityEngine.Object.FindAnyObjectByType<PlayerController>(), () => { }, () => { });
         }
 

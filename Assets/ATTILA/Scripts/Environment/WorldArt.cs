@@ -12,6 +12,22 @@ namespace ATTILA.Environment
         private static readonly List<Mesh> Meshes = new();
         private static Mesh roofMesh;
 
+        /// <summary>Parent for everything a location builds; clearing it removes the whole place.</summary>
+        public static Transform Root { get; private set; }
+
+        public static Transform NewRoot(string name)
+        {
+            if (Root != null) Object.Destroy(Root.gameObject);
+            Root = new GameObject(name).transform;
+            return Root;
+        }
+
+        private static GameObject Attach(GameObject go)
+        {
+            if (Root != null && go != null && go.transform.parent == null) go.transform.SetParent(Root, true);
+            return go;
+        }
+
         public static Material SharedFlat(Color color)
         {
             if (FlatMaterials.TryGetValue(color, out var cached) && cached != null) return cached;
@@ -43,7 +59,7 @@ namespace ATTILA.Environment
             var renderer = go.GetComponent<Renderer>();
             renderer.shadowCastingMode = ShadowCastingMode.Off;
             renderer.receiveShadows = false;
-            return go;
+            return Attach(go);
         }
 
         /// <summary>Shallow twelve-sided yurt roof; one mesh is shared by every yurt in the scene.</summary>
@@ -97,7 +113,7 @@ namespace ATTILA.Environment
             renderer.flipX = mirrored;
             prop.AddComponent<Billboard>();
             AddShadow(prop.transform, shadow);
-            return prop;
+            return Attach(prop);
         }
 
         /// <summary>Flat decal lying on the ground: fire glow, target rings.</summary>
@@ -112,7 +128,7 @@ namespace ATTILA.Environment
             renderer.sprite = sprite;
             renderer.color = color;
             renderer.sortingOrder = -1;
-            return go;
+            return Attach(go);
         }
 
         public static GameObject GroundPatch(Transform parent, Vector3 position, Vector2 size, Texture2D texture)
@@ -149,7 +165,7 @@ namespace ATTILA.Environment
             renderer.sharedMaterial = texture != null ? Textured(texture, Vector2.one, color) : SharedFlat(color);
             renderer.shadowCastingMode = ShadowCastingMode.Off;
             renderer.receiveShadows = false;
-            return patch;
+            return Attach(patch);
         }
     }
 

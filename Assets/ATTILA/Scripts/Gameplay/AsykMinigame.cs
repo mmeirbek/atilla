@@ -14,19 +14,26 @@ namespace ATTILA.Gameplay
     /// </summary>
     public sealed class AsykMinigame : MonoBehaviour
     {
-        private const int Throws = 3;
-        private const int Needed = 2;
+        private const int Throws = 4;
+        private const int Needed = 3;
         private const float ZoneHalfWidth = .085f;
-        private const float MarkerSpeed = .85f;
+        private const float MarkerSpeed = .95f;
+        private const float SpeedPerThrow = .22f;
+        private const float PowerSpeed = 1.35f;
+        private const float PowerBand = .22f;
 
-        private enum Phase { Aiming, Throwing, Resolving, Done }
+        private enum Phase { Aiming, Power, Throwing, Resolving, Done }
 
         private Action won, lost;
         private GameObject root;
         private RectTransform markerRect, sakaRect;
         private readonly List<Image> pieces = new();
         private readonly List<Vector2> homes = new();
-        private Text statusText;
+        private Text statusText, stageText;
+        private RectTransform powerFill;
+        private float power;
+        private int powerDirection = 1;
+        private float aim;
         private Phase phase;
         private float marker;
         private int direction = 1;
@@ -62,7 +69,7 @@ namespace ATTILA.Gameplay
                 new Color(MenuUiKit.Burgundy.r, MenuUiKit.Burgundy.g, MenuUiKit.Burgundy.b, .96f), MenuUiKit.Gold);
             title.Border.raycastTarget = false;
             GameUiKit.Label(title.Content, "АСЫҚ АТУ", 34, MenuUiKit.Cream, TextAnchor.MiddleCenter, 20, 10, 820, 44);
-            GameUiKit.Label(title.Content, "Сақаны дәл ату үшін жолақ ортасында БОС ОРЫН басыңыз.", 20, MenuUiKit.Parchment, TextAnchor.MiddleCenter, 20, 58, 820, 32);
+            GameUiKit.Label(title.Content, "Екі рет бас: алдымен бағытты, сосын күшті дәл тап.", 20, MenuUiKit.Parchment, TextAnchor.MiddleCenter, 20, 58, 820, 32);
 
             for (int i = 0; i < 5; i++)
             {
@@ -81,6 +88,19 @@ namespace ATTILA.Gameplay
             UiFactory.SetRect(saka.rectTransform, new Vector2(.5f, .5f), new Vector2(112, 98), sakaHome);
             sakaRect = saka.rectTransform;
 
+            var powerTrack = GameUiKit.Panel(root.transform, new Vector2(.5f, 0f), new Vector2(1000, 44), new Vector2(0, 208), MenuUiKit.Dark, MenuUiKit.Gold);
+            var powerZone = UiFactory.Panel(powerTrack.Content, new Color(.42f, .68f, .34f, .95f));
+            powerZone.raycastTarget = false;
+            UiFactory.SetRect(powerZone.rectTransform, new Vector2(1f - PowerBand / 2f, .5f), new Vector2(1000 * PowerBand, 30), Vector2.zero);
+            var fill = UiFactory.Panel(powerTrack.Content, MenuUiKit.Gold);
+            fill.raycastTarget = false;
+            fill.rectTransform.anchorMin = new Vector2(0f, .5f);
+            fill.rectTransform.anchorMax = new Vector2(0f, .5f);
+            fill.rectTransform.pivot = new Vector2(0f, .5f);
+            fill.rectTransform.anchoredPosition = new Vector2(-494, 0);
+            fill.rectTransform.sizeDelta = new Vector2(0, 30);
+            powerFill = fill.rectTransform;
+
             var bar = GameUiKit.Panel(root.transform, new Vector2(.5f, 0f), new Vector2(1000, 66), new Vector2(0, 130), MenuUiKit.Dark, MenuUiKit.Gold);
             var zone = UiFactory.Panel(bar.Content, new Color(.42f, .68f, .34f, .95f));
             zone.raycastTarget = false;
@@ -95,11 +115,20 @@ namespace ATTILA.Gameplay
 
             statusText = GameUiKit.Label(root.transform, string.Empty, 26, MenuUiKit.Cream, TextAnchor.MiddleCenter, 0, 0, 900, 40);
             statusText.rectTransform.anchorMin = statusText.rectTransform.anchorMax = new Vector2(.5f, 0f);
-            statusText.rectTransform.anchoredPosition = new Vector2(0, 214);
+            statusText.rectTransform.anchoredPosition = new Vector2(0, 268);
+            stageText = GameUiKit.Label(root.transform, string.Empty, 22, MenuUiKit.Gold, TextAnchor.MiddleCenter, 0, 0, 900, 34);
+            stageText.rectTransform.anchorMin = stageText.rectTransform.anchorMax = new Vector2(.5f, 0f);
+            stageText.rectTransform.anchoredPosition = new Vector2(0, 90);
             UpdateStatus();
         }
 
-        private void UpdateStatus() => statusText.text = $"АТЫС: {thrown}/{Throws}          ҰТЫС: {hits}/{Needed}";
+        private void UpdateStatus()
+        {
+            statusText.text = $"АТЫС: {thrown}/{Throws}          ҰТЫС: {hits}/{Needed}";
+            if (stageText != null) stageText.text = phase == Phase.Aiming ? "1. БАҒЫТ — БОС ОРЫН" : phase == Phase.Power ? "2. КҮШ — БОС ОРЫН" : string.Empty;
+        }
+
+        private static bool Pressed() => Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return) || Input.GetMouseButtonDown(0);
 
         private void Update()
         {
@@ -108,11 +137,26 @@ namespace ATTILA.Gameplay
             switch (phase)
             {
                 case Phase.Aiming:
-                    marker += direction * MarkerSpeed * delta;
+                    marker += direction * (MarkerSpeed + thrown * SpeedPerThrow) * delta;
                     if (marker > 1f) { marker = 1f; direction = -1; }
                     else if (marker < -1f) { marker = -1f; direction = 1; }
                     markerRect.anchoredPosition = new Vector2(marker * 480f, 0f);
-                    if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return) || Input.GetMouseButtonDown(0)) Throw();
+                    if (Pressed())
+                    {
+                        aim = marker;
+                        power = 0f;
+                        powerDirection = 1;
+                        phase = Phase.Power;
+                        AudioService.Play(Sfx.Blip, .6f);
+                        UpdateStatus();
+                    }
+                    break;
+                case Phase.Power:
+                    power += powerDirection * PowerSpeed * delta;
+                    if (power > 1f) { power = 1f; powerDirection = -1; }
+                    else if (power < 0f) { power = 0f; powerDirection = 1; }
+                    powerFill.sizeDelta = new Vector2(power * 988f, 30);
+                    if (Pressed()) Throw();
                     break;
                 case Phase.Throwing:
                     animation += delta * 2.6f;
@@ -134,11 +178,14 @@ namespace ATTILA.Gameplay
             animation = 0f;
             thrown++;
             AudioService.Play(Sfx.Toss, .9f);
-            bool hit = Mathf.Abs(marker) <= ZoneHalfWidth * 2f;
-            targetPiece = hit ? NearestPiece(marker * 300f) : null;
+            // Both halves have to land: the line has to be right and the throw strong enough to reach it.
+            bool aimed = Mathf.Abs(aim) <= ZoneHalfWidth * 2f;
+            bool strong = power >= 1f - PowerBand;
+            targetPiece = aimed && strong ? NearestPiece(aim * 300f) : null;
             sakaTarget = targetPiece != null
                 ? targetPiece.rectTransform.anchoredPosition - new Vector2(0, 70)
-                : new Vector2(marker * 420f, -60f);
+                : new Vector2(aim * 420f, Mathf.Lerp(-210f, -40f, power));
+            if (aimed && !strong) statusText.text = "КҮШ ЖЕТПЕДІ";
         }
 
         private Image NearestPiece(float x)
@@ -178,9 +225,11 @@ namespace ATTILA.Gameplay
                 targetPiece = null;
             }
             sakaRect.anchoredPosition = sakaHome;
+            powerFill.sizeDelta = new Vector2(0, 30);
             if (hits >= Needed) { Finish(true); return; }
             if (thrown >= Throws) { Finish(false); return; }
             phase = Phase.Aiming;
+            UpdateStatus();
         }
 
         private void Finish(bool success)

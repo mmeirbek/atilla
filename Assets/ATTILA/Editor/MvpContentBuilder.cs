@@ -63,11 +63,18 @@ namespace ATTILA.Editor
         private static DialogueChoice Choice(string label, string next, string flag = null, int xp = 0, int unity = 0) =>
             new() { label = label, nextDialogueId = next, setFlag = flag, xp = xp, unity = unity };
 
-        private static NpcPlacement At(string npcId, float x, float z, FacingHint facing = FacingHint.South) =>
-            new() { npcId = npcId, position = new Vector2(x, z), facing = facing };
+        private static NpcPlacement At(string npcId, float x, float z, FacingHint facing = FacingHint.South, LocationId location = LocationId.Aul) =>
+            new() { npcId = npcId, position = new Vector2(x, z), facing = facing, location = location };
 
-        private static NpcPlacement Figure(string look, float x, float z, FacingHint facing = FacingHint.South) =>
-            new() { look = look, position = new Vector2(x, z), facing = facing };
+        private static NpcPlacement Figure(string look, float x, float z, FacingHint facing = FacingHint.South, LocationId location = LocationId.Aul) =>
+            new() { look = look, position = new Vector2(x, z), facing = facing, location = location };
+
+        /// <summary>Moves a beat to another place; the player has to ride there before it can start.</summary>
+        private static BeatDefinition In(BeatDefinition beat, LocationId location)
+        {
+            beat.location = location;
+            return beat;
+        }
 
         private static BeatDefinition Beat(string npc, string objective, string dialogue, int xp, string checkpoint, BeatAction action = BeatAction.None, params string[] unlock) =>
             new() { npcId = npc, objective = objective, dialogueId = dialogue, xp = xp, checkpoint = checkpoint, action = action, unlockEntryIds = unlock };
@@ -161,7 +168,9 @@ namespace ATTILA.Editor
             Say("DIA_K_T3", "Ақсақал", "elder",
                 "Соқыр теке — баланың құлағын, сезімін шыңдайтын ойын.",
                 "Көзі байлаулы бала дыбысқа қарап жол табады.");
-            History(Say("DIA_K_ROUTE", "Би", "bi", "Жүк артылды, ел жиналды. Көш бағыты — Шу бойы, Қозыбасы."), "Қозыбасы как место откочёвки");
+            History(Say("DIA_K_ROUTE", "Би", "bi",
+                "Ауыл далаға шықты, жүк артылды.",
+                "Көш бағыты — Шу бойы, Қозыбасы."), "Қозыбасы как место откочёвки");
 
             var chapter = new ChapterDefinition
             {
@@ -170,12 +179,16 @@ namespace ATTILA.Editor
                 finaleText = "Көш Жетісуға аман жетті. Жаңа қонысқа орныққан ел кейін Қазақ хандығы деген атпен тарихта қалды.",
                 finaleAltText = "Көш Жетісуға аман жетті. Елдің ойын тыңдаған сұлтанға халық сенді — жаңа қоныста Қазақ хандығының іргетасы қаланды.",
                 finaleAltMinUnity = 20,
-                worldTint = new Color(1f, .93f, .82f), skyColor = new Color(.93f, .78f, .62f), banner = "red"
+                worldTint = new Color(1f, .93f, .82f), skyColor = new Color(.93f, .78f, .62f), banner = "red",
+                allyMinUnity = 20, allyMessage = "Көрші ауыл да көшке қосылды"
             };
+            chapter.allies.AddRange(new[] { Figure("resident", 3.2f, -4.2f, FacingHint.West), Figure("woman", 4.6f, -3.2f, FacingHint.West), Figure("child", 4f, -5.4f) });
             chapter.npcs.AddRange(new[]
             {
                 At("NPC_BI", -4f, 6f), At("NPC_AISHA", -8f, 4.5f, FacingHint.East), At("NPC_CHILDREN", 5f, 7f), At("NPC_ELDER", -5.6f, -1.2f, FacingHint.East),
-                At("NPC_HERDER", 10.5f, -1.5f, FacingHint.West), Figure("child_girl", 6.3f, 6.2f, FacingHint.West), Figure("woman", -10f, 12.4f), Figure("resident", 8f, 12f, FacingHint.West)
+                At("NPC_HERDER", 10.5f, -1.5f, FacingHint.West), Figure("child_girl", 6.3f, 6.2f, FacingHint.West), Figure("woman", -10f, 12.4f), Figure("resident", 8f, 12f, FacingHint.West),
+                At("NPC_BI", -1.6f, 9.4f, FacingHint.South, LocationId.Steppe), Figure("woman", 3.4f, 8.2f, FacingHint.West, LocationId.Steppe),
+                Figure("resident", -4.2f, 6.6f, FacingHint.East, LocationId.Steppe), Figure("child", 1.2f, 5.4f, FacingHint.North, LocationId.Steppe)
             });
             chapter.beats.Add(Beat("NPC_BI", "Бимен кеңес", "DIA_K_BI", 50, "KEREY_COUNCIL"));
             chapter.beats.Add(TaskBeat("NPC_AISHA", "Айшаға отын жина", "DIA_K_AISHA", 60, "KEREY_FIREWOOD", BeatAction.Collect,
@@ -192,7 +205,7 @@ namespace ATTILA.Editor
             night.campfire = new CampfireDefinition { title = "Көш алдындағы түн" };
             night.campfire.topics.AddRange(new[] { Topic("Ел неге көшеді?", "DIA_K_T1", "kazakh_khanate"), Topic("Жетісу жері", "DIA_K_T2", "kosh"), Topic("Бабалар ойыны", "DIA_K_T3", "sokyr_teke") });
             chapter.beats.Add(night);
-            var route = Beat("NPC_BI", "Биге көшке белгі бер", "DIA_K_ROUTE", 100, "KEREY_COMPLETE", BeatAction.Map, "kerey_khan", "kazakh_khanate");
+            var route = In(Beat("NPC_BI", "Далада көшті бастау", "DIA_K_ROUTE", 100, "KEREY_COMPLETE", BeatAction.Map, "kerey_khan", "kazakh_khanate"), LocationId.Steppe);
             route.map = new MapDefinition { title = "Көш жолы", goal = "Шу бойына, Жетісуға жету", startLabel = "Сырдария бойы", endLabel = "Шу, Қозыбасы",
                 route = new[] { new Vector2(.39f, .30f), new Vector2(.47f, .34f), new Vector2(.55f, .31f), new Vector2(.64f, .27f) } };
             chapter.beats.Add(route);
@@ -229,6 +242,9 @@ namespace ATTILA.Editor
             Say("DIA_A_HERDER", "Малшы", "resident",
                 "Елшінің аты бос жүр, сұлтаным.",
                 "Атты бағанаға дейін жетелеп апарыңызшы — соңыңыздан ереді.");
+            Say("DIA_A_BAIGE", "Малшы", "resident",
+                "Жиын алдында бәйге бар, сұлтаным. Ауыл жігіті сізбен жарысқысы келеді.",
+                "Бес белгіні ретімен алып, мәреге бірінші жетсеңіз — жеңіс сіздікі.");
             Say("DIA_A_CHILDREN", "Балалар", "child",
                 "Сұлтан аға, сақаңызды алыңыз! Асық атып көрейік.",
                 "Үш рет атасыз. Екі асықты шеңберден шығарсаңыз — жеңіс сіздікі!");
@@ -242,7 +258,9 @@ namespace ATTILA.Editor
             Say("DIA_A_T3", "Ақсақал", "elder",
                 "Асық — ауыл баласының сүйікті ойыны.",
                 "Сақаны дәл ату үшін көз де, шыдам да керек.");
-            History(Say("DIA_A_ROUTE", "Би", "bi", "Үш жүздің өкілдері Түркістанға жиналуда. Жолға шығатын уақыт жетті."), "место избрания — Түркістан");
+            History(Say("DIA_A_ROUTE", "Би", "bi",
+                "Қала қақпасы ашық, үш жүздің өкілдері жиналып қалды.",
+                "Ел алдына шығатын уақыт жетті."), "место избрания — Түркістан");
 
             var chapter = new ChapterDefinition
             {
@@ -251,13 +269,19 @@ namespace ATTILA.Editor
                 finaleText = "Түркістанда ел жиналды. Дәстүр бойынша Абылайды ақ киізге көтеріп, хан сайлады.",
                 finaleAltText = "Түркістанда үш жүздің өкілдері бір дастарқанға жиналды. Бірлікті таңдаған Абылайды ел ақ киізге көтеріп, хан сайлады.",
                 finaleAltMinUnity = 60,
-                worldTint = new Color(1f, 1f, .96f), skyColor = new Color(.66f, .82f, .92f), banner = "blue"
+                worldTint = new Color(1f, 1f, .96f), skyColor = new Color(.66f, .82f, .92f), banner = "blue",
+                allyMinUnity = 50, allyMessage = "Кіші жүз бен Ұлы жүз жасағы келді", duelAllyMinUnity = 50
             };
+            chapter.allies.AddRange(new[] { Figure("warrior", -4.6f, -4.6f, FacingHint.East), Figure("warrior", -3.2f, -6f, FacingHint.North), Figure("envoy2", 4.2f, -5f, FacingHint.West) });
             chapter.npcs.AddRange(new[]
             {
                 At("NPC_BI", -4f, 6f), At("NPC_ENVOY_WEST", -8.5f, 3.5f, FacingHint.East), At("NPC_ENVOY_SOUTH", 8.4f, 3.2f, FacingHint.West),
                 At("NPC_CHILDREN", 5f, 7f), At("NPC_ELDER", -5.6f, -1.2f, FacingHint.East), At("NPC_HERDER", 10.5f, -1.5f, FacingHint.West),
-                Figure("child_girl", 6.3f, 6.2f, FacingHint.West), Figure("warrior", 2.6f, 12.4f), Figure("warrior", -2.6f, 12.4f), Figure("woman", -10f, 12.4f)
+                Figure("child_girl", 6.3f, 6.2f, FacingHint.West), Figure("warrior", 2.6f, 12.4f), Figure("warrior", -2.6f, 12.4f), Figure("woman", -10f, 12.4f),
+                At("NPC_ENVOY_SOUTH", -2.4f, 6.6f, FacingHint.East, LocationId.City), At("NPC_BI", 2.6f, 7.2f, FacingHint.West, LocationId.City),
+                Figure("envoy", -6.4f, 2.6f, FacingHint.East, LocationId.City), Figure("warrior", 6.2f, 2.4f, FacingHint.West, LocationId.City),
+                Figure("resident", -8.6f, -4.4f, FacingHint.North, LocationId.City), Figure("woman", 8.4f, -3.6f, FacingHint.North, LocationId.City),
+                Figure("child", -3.6f, -8.4f, LocationId.City == LocationId.City ? FacingHint.North : FacingHint.South, LocationId.City)
             });
             chapter.beats.Add(Beat("NPC_BI", "Бимен кеңес", "DIA_A_BI", 50, "ABYLAI_COUNCIL"));
             chapter.beats.Add(Beat("NPC_ENVOY_WEST", "Кіші жүз елшісін тыңда", "DIA_A_ENVOY_W", 40, "ABYLAI_WEST"));
@@ -265,12 +289,17 @@ namespace ATTILA.Editor
             chapter.beats.Add(TaskBeat("NPC_HERDER", "Елшінің атын бағанаға жетеле", "DIA_A_HERDER", 60, "ABYLAI_HORSE", BeatAction.Escort,
                 Job("АТТЫ ЖЕТЕЛЕУ", "Ат соңыңнан ереді. Оны бағанаға дейін апар.", "Ат", new[] { "post" },
                     new[] { new Vector2(11.6f, 6.4f) }, 1, new Vector2(6.4f, -10.6f))));
+            chapter.beats.Add(TaskBeat("NPC_HERDER", "Бәйгеге қосыл", "DIA_A_BAIGE", 120, "ABYLAI_BAIGE", BeatAction.Baige,
+                Job("БӘЙГЕ", "Бес белгіні ретімен ал, қарсыласыңнан озып мәреге жет.", "Белгі", new[] { "post" },
+                    new[] { new Vector2(16f, 12f), new Vector2(18f, -8f), new Vector2(0f, -18f), new Vector2(-18f, -8f), new Vector2(-16f, 12f) },
+                    5, new Vector2(0f, -14f)),
+                "baige"));
             chapter.beats.Add(Beat("NPC_CHILDREN", "Балалармен асық ат", "DIA_A_CHILDREN", 100, "ABYLAI_GAME", BeatAction.Asyk, "asyk"));
             var night = Beat("NPC_ELDER", "Кешкі от басына бар", "DIA_A_ELDER", 50, "ABYLAI_NIGHT", BeatAction.Campfire);
             night.campfire = new CampfireDefinition { title = "Түркістан алдындағы түн" };
             night.campfire.topics.AddRange(new[] { Topic("Жоңғар заманы", "DIA_A_T1", "dzungar_wars"), Topic("Шапан — құрмет белгісі", "DIA_A_T2", "shapan"), Topic("Асық ойыны", "DIA_A_T3", "asyk") });
             chapter.beats.Add(night);
-            var route = Beat("NPC_BI", "Түркістанға аттан", "DIA_A_ROUTE", 100, "ABYLAI_COMPLETE", BeatAction.Map, "abylai_khan", "turkistan");
+            var route = In(Beat("NPC_BI", "Түркістандағы жиынға қатыс", "DIA_A_ROUTE", 100, "ABYLAI_COMPLETE", BeatAction.Map, "abylai_khan", "turkistan"), LocationId.City);
             route.map = new MapDefinition { title = "Түркістанға жол", goal = "Үш жүздің жиынына жету", startLabel = "Сарыарқа", endLabel = "Түркістан",
                 route = new[] { new Vector2(.56f, .76f), new Vector2(.50f, .60f), new Vector2(.45f, .42f), new Vector2(.45f, .25f) } };
             chapter.beats.Add(route);
@@ -284,10 +313,14 @@ namespace ATTILA.Editor
             var council = Say("DIA_B_COUNCIL", "Жүзбасы", "warrior",
                 "Батыр, барлаушылар хабар әкелді: жау қолы асудан өтуге дайындалып жатыр.",
                 "Жасақ дайын. Бұйрығыңызды күтеміз.");
-            council.choices.Add(Choice("Асуды бекітіңдер", "DIA_B_FORTIFY", "fortify", 20));
-            council.choices.Add(Choice("Тосқауыл қойып, жасырынып күтеміз", "DIA_B_AMBUSH", "ambush", 20));
-            Say("DIA_B_FORTIFY", "Жүзбасы", "warrior", "Құп болады! Тас қалап, асуды бекітеміз. Алдымен ұстаға соғып, қаруыңызды алыңыз.");
-            Say("DIA_B_AMBUSH", "Жүзбасы", "warrior", "Құп болады! Сайдың бойына жасырынамыз. Алдымен ұстаға соғып, қаруыңызды алыңыз.");
+            council.choices.Add(Choice("Жасақты бір қолға біріктір", "DIA_B_FORTIFY", "united", 20, 40));
+            council.choices.Add(Choice("Екі топқа бөлініп, тосқауыл құр", "DIA_B_AMBUSH", "split", 20, 10));
+            Say("DIA_B_FORTIFY", "Жүзбасы", "warrior",
+                "Құп болады! Барлық жасақ бір тудың астына жиналады.",
+                "Жекпе-жекке шыққанда артыңда жасақтас тұрады. Алдымен ұстаға соғып, қаруыңызды алыңыз.");
+            Say("DIA_B_AMBUSH", "Жүзбасы", "warrior",
+                "Құп болады! Жасақты екіге бөлеміз, сайға тосқауыл қоямыз.",
+                "Бірақ жекпе-жекке жалғыз шығасыз. Алдымен ұстаға соғып, қаруыңызды алыңыз.");
             Say("DIA_B_SMITH", "Ұста", "resident",
                 "Сауытыңыз жөнделді, найзаңыз қайралды.",
                 "Мына шапанды да алыңыз — таулы жерде түн суық.");
@@ -317,13 +350,19 @@ namespace ATTILA.Editor
                 id = "CH_KABANBAY", roleId = "ROLE_KABANBAY", title = "III тарау · Қорғаныс", subtitle = "XVIII ғасыр",
                 finaleTitle = "III ТАРАУ АЯҚТАЛДЫ",
                 finaleText = "Біріккен қазақ жасақтары жауға тойтарыс берді. Аңырақай даласындағы жеңіс халық жадында сақталды.",
-                worldTint = new Color(.94f, .84f, .86f), skyColor = new Color(.62f, .52f, .66f), banner = "dark"
+                worldTint = new Color(.94f, .84f, .86f), skyColor = new Color(.62f, .52f, .66f), banner = "dark",
+                allyMinUnity = 40, allyMessage = "Жасақ бір тудың астына жиналды", duelAllyMinUnity = 40,
+                finaleAltText = "Бір тудың астына жиналған жасақ жауды тойтарды. Аңырақай даласындағы жеңісте әр рудың үлесі болды.",
+                finaleAltMinUnity = 40
             };
+            chapter.allies.AddRange(new[] { Figure("warrior", -4.8f, -4.4f, FacingHint.East), Figure("warrior", -3.4f, -6.2f, FacingHint.North), Figure("warrior", 3.6f, -5.2f, FacingHint.West) });
             chapter.npcs.AddRange(new[]
             {
                 At("NPC_COMMANDER", -4f, 6f), At("NPC_SMITH", 8.4f, 3.2f, FacingHint.West), At("NPC_AISHA", -8f, 4.5f, FacingHint.East),
                 At("NPC_SCOUT", 5f, 7f), At("NPC_ELDER", -5.6f, -1.2f, FacingHint.East),
-                Figure("warrior", 2.6f, 12.4f), Figure("warrior", -2.6f, 12.4f), Figure("warrior", 3.4f, 9.6f, FacingHint.West), Figure("resident", 10.8f, -2f, FacingHint.West)
+                Figure("warrior", 2.6f, 12.4f), Figure("warrior", -2.6f, 12.4f), Figure("warrior", 3.4f, 9.6f, FacingHint.West), Figure("resident", 10.8f, -2f, FacingHint.West),
+                At("NPC_SCOUT", -1.8f, 9.6f, FacingHint.South, LocationId.Steppe), Figure("warrior", 3.2f, 8.4f, FacingHint.West, LocationId.Steppe),
+                Figure("warrior", -4.6f, 7.2f, FacingHint.East, LocationId.Steppe), At("NPC_COMMANDER", 1.6f, 5.2f, FacingHint.North, LocationId.Steppe)
             });
             chapter.beats.Add(Beat("NPC_COMMANDER", "Әскери кеңеске қатыс", "DIA_B_COUNCIL", 50, "KABANBAY_COUNCIL"));
             chapter.beats.Add(Beat("NPC_SMITH", "Ұстадан қару-жарақ ал", "DIA_B_SMITH", 30, "KABANBAY_SMITH", BeatAction.None, "sauyt"));
@@ -331,12 +370,12 @@ namespace ATTILA.Editor
                 Job("ЖАУ ІЗІН ТАБУ", "Батыстағы үлкен тастардың арасын қара.", "Жау ізі", new[] { "torsyk" },
                     new[] { new Vector2(-16.2f, -6.4f) })));
             chapter.beats.Add(Beat("NPC_AISHA", "Ауылдың аман екенін біл", "DIA_B_AISHA", 30, "KABANBAY_AUL"));
-            chapter.beats.Add(Beat("NPC_SCOUT", "Жекпе-жекке шық", "DIA_B_SCOUT", 150, "KABANBAY_DUEL", BeatAction.Duel, "dzungar_wars", "zhekpe_zhek"));
+            chapter.beats.Add(In(Beat("NPC_SCOUT", "Далаға шығып, жекпе-жекке тұр", "DIA_B_SCOUT", 150, "KABANBAY_DUEL", BeatAction.Duel, "dzungar_wars", "zhekpe_zhek"), LocationId.Steppe));
             var night = Beat("NPC_ELDER", "Жеңіс түні: от басына бар", "DIA_B_ELDER", 50, "KABANBAY_NIGHT", BeatAction.Campfire);
             night.campfire = new CampfireDefinition { title = "Жеңіс түні" };
             night.campfire.topics.AddRange(new[] { Topic("Соғыстар мен шайқастар", "DIA_B_T1", "dzungar_wars"), Topic("Батыр кім?", "DIA_B_T2", "sauyt"), Topic("Бабалар дәстүрі", "DIA_B_T3", "shapan") });
             chapter.beats.Add(night);
-            var route = Beat("NPC_COMMANDER", "Аңырақайға аттан", "DIA_B_ROUTE", 100, "KABANBAY_COMPLETE", BeatAction.Map, "kabanbay_batyr");
+            var route = In(Beat("NPC_COMMANDER", "Аңырақайға аттан", "DIA_B_ROUTE", 100, "KABANBAY_COMPLETE", BeatAction.Map, "kabanbay_batyr"), LocationId.Steppe);
             route.map = new MapDefinition { title = "Аңырақайға жол", goal = "Біріккен қолға қосылу", startLabel = "Сарыарқа", endLabel = "Аңырақай",
                 route = new[] { new Vector2(.56f, .76f), new Vector2(.52f, .62f), new Vector2(.56f, .48f), new Vector2(.63f, .37f) } };
             chapter.beats.Add(route);
@@ -397,6 +436,9 @@ namespace ATTILA.Editor
             Entry("sauyt", "МӘДЕНИЕТ", "Сауыт", null, "sauyt",
                 "Батырдың темір не былғары сауыты. Дулыға, шарайна және белбеумен толықтырылған.",
                 "виды доспеха и их названия"),
+            Entry("baige", "МӘДЕНИЕТ", "Бәйге", null, "horse",
+                "Ат жарысы. Қашықтығы бірнеше шақырымға созылатын бәйгеге ауыл-ауылдан ат қосылған, жеңімпаз атқа да, баптаушысына да абырой әкелген.",
+                "дистанции и правила байге"),
             Entry("asyk", "МӘДЕНИЕТ", "Асық ату", null, "asyk",
                 "Қойдың асығымен ойналатын ұлттық ойын. Ойыншы сақамен атып, сызықтағы асықтарды ұтып алады.",
                 "правила игры и название «сақа»"),

@@ -8,6 +8,7 @@ namespace ATTILA.Player
         [SerializeField] private float moveSpeed = 4f;
         [SerializeField] private float turnSpeed = 14f;
         private bool inputEnabled = true;
+        private float speedMultiplier = 1f;
         private CharacterController controller;
         private PlayerVisual visual;
         private Vector3 velocity;
@@ -25,9 +26,11 @@ namespace ATTILA.Player
             }
             else visual.SetMovement(transform.forward, false);
             velocity.y += Physics.gravity.y * Time.deltaTime;
-            controller.Move((move * moveSpeed + velocity) * Time.deltaTime);
+            controller.Move((move * (moveSpeed * speedMultiplier) + velocity) * Time.deltaTime);
             if (controller.isGrounded && velocity.y < 0f) velocity.y = -1f;
         }
         public void SetInputEnabled(bool value) => inputEnabled = value;
+        /// <summary>Riding a horse during the бәйге is the same controller, only faster.</summary>
+        public void SetSpeedMultiplier(float value) => speedMultiplier = Mathf.Max(.1f, value);
     }
 }

@@ -57,7 +57,7 @@ namespace ATTILA.Data
         public string sourceNote;
     }
 
-    public enum BeatAction { None, SokyrTeke, Asyk, Duel, Campfire, Map, Collect, Find, Escort, Build }
+    public enum BeatAction { None, SokyrTeke, Asyk, Duel, Campfire, Map, Collect, Find, Escort, Build, Baige }
 
     /// <summary>A job done in the world rather than in a dialogue: gather, search, lead or assemble.</summary>
     [Serializable]
@@ -102,6 +102,7 @@ namespace ATTILA.Data
     public sealed class BeatDefinition
     {
         public string npcId;
+        public LocationId location;
         public string objective;
         public string dialogueId;
         public string altDialogueId;
@@ -121,11 +122,15 @@ namespace ATTILA.Data
     {
         public string npcId;
         public string look;
+        public LocationId location;
         public Vector2 position;
         public FacingHint facing = FacingHint.South;
     }
 
     public enum FacingHint { South, East, West, North }
+
+    /// <summary>Where a beat happens and where a person stands: the aul, the open steppe or the city.</summary>
+    public enum LocationId { Aul, Steppe, City }
 
     [Serializable]
     public sealed class ChapterDefinition
@@ -140,6 +145,12 @@ namespace ATTILA.Data
         public string finaleText;
         [Tooltip("Shown instead of finaleText when the role's unity value reaches finaleAltMinUnity (0 disables).")] public string finaleAltText;
         public int finaleAltMinUnity;
+
+        [Header("Allies")]
+        [Tooltip("Unity needed before these people join the chapter; 0 means they never do.")] public int allyMinUnity;
+        [Tooltip("Toast shown the moment they arrive.")] public string allyMessage;
+        [Tooltip("Support in the duel starts at this unity value; 0 disables it.")] public int duelAllyMinUnity;
+        public List<NpcPlacement> allies = new();
         [Header("Atmosphere")]
         [Tooltip("Multiplies the whole pixelated world view: the chapter's time of day.")] public Color worldTint = Color.white;
         public Color skyColor = new(.65f, .82f, .91f);

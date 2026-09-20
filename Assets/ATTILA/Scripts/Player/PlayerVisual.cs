@@ -9,6 +9,7 @@ namespace ATTILA.Player
         private SpriteRenderer spriteRenderer;
         private Camera viewCamera;
         private float animationTime;
+        private float lift;
         public FacingDirection Facing { get; private set; } = FacingDirection.S;
         public bool IsMoving { get; private set; }
         private void Awake()
@@ -22,6 +23,13 @@ namespace ATTILA.Player
             spriteRenderer.receiveShadows = false;
             spriteRenderer.spriteSortPoint = SpriteSortPoint.Pivot;
         }
+        /// <summary>Raises the sprite so the character sits on a mount.</summary>
+        public void SetLift(float value)
+        {
+            lift = value;
+            if (spriteRenderer != null) spriteRenderer.transform.localPosition = new Vector3(0f, -.98f + lift, 0f);
+        }
+
         /// <summary>Swaps the directional sprites, e.g. to give each role or NPC its own look.</summary>
         public void SetSpriteSet(DirectionalSpriteSet value)
         {
