@@ -42,7 +42,7 @@ namespace ATTILA.UI
             UiFactory.SetRect(heading.rectTransform, new Vector2(.5f, .88f), new Vector2(980, 78), Vector2.zero);
             if (back == null) return;
             var button = MenuPixelButton.Create(root, "АРТҚА", back);
-            UiFactory.SetRect(button.GetComponent<RectTransform>(), new Vector2(.12f, .10f), new Vector2(190, 58), Vector2.zero);
+            UiFactory.SetRect(button.GetComponent<RectTransform>(), new Vector2(.12f, .085f), new Vector2(280, 84), Vector2.zero);
         }
 
         public static Image Panel(Transform root, Vector2 anchor, Vector2 size, bool selected = false)

@@ -52,6 +52,11 @@ def main():
     save(env.shadow_blob(), "Props", "shadow.png")
     save(env.quest_marker(), "Props", "marker.png")
     save(env.kazan(), "Props", "kazan.png")
+    save(env.camel(0), "Props", "camel_0.png")
+    save(env.camel(1), "Props", "camel_1.png")
+    save(env.sheep(), "Props", "sheep.png")
+    save(env.cart(), "Props", "cart.png")
+    save(env.well(), "Props", "well.png")
 
     save(env.campfire_scene(), "Scenes", "campfire.png")
     save(env.asyk_scene(), "Scenes", "asyk_ring.png")

@@ -76,11 +76,11 @@ namespace ATTILA.UI
             {
                 var topic = definition.topics[i];
                 var button = MenuPixelButton.Create(panel.Content, topic.label, () => Ask(topic));
-                UiFactory.SetRect(button.GetComponent<RectTransform>(), new Vector2(.5f, .66f - i * .17f), new Vector2(560, 80), Vector2.zero);
+                UiFactory.SetRect(button.GetComponent<RectTransform>(), new Vector2(.5f, .66f - i * .17f), new Vector2(580, 94), Vector2.zero);
                 topicButtons.Add(button);
             }
             leaveButton = MenuPixelButton.Create(panel.Content, "ҰЙЫҚТАУҒА", Leave);
-            UiFactory.SetRect(leaveButton.GetComponent<RectTransform>(), new Vector2(.5f, .12f), new Vector2(400, 72), Vector2.zero);
+            UiFactory.SetRect(leaveButton.GetComponent<RectTransform>(), new Vector2(.5f, .1f), new Vector2(480, 88), Vector2.zero);
             leaveButton.interactable = false;
             AudioService.PlayMusic(MusicTrack.Night);
         }
@@ -184,8 +184,9 @@ namespace ATTILA.UI
                 Place(rider.rectTransform, points[0]);
             }
 
+            AudioService.PlayMusic(MusicTrack.Map);
             var go = MenuPixelButton.Create(transform, "ЖОЛҒА ШЫҒУ", Continue);
-            UiFactory.SetRect(go.GetComponent<RectTransform>(), new Vector2(.5f, .055f), new Vector2(460, 84), Vector2.zero);
+            UiFactory.SetRect(go.GetComponent<RectTransform>(), new Vector2(.5f, .06f), new Vector2(540, 96), Vector2.zero);
         }
 
         private void Place(RectTransform rect, Vector2 normalized)

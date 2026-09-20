@@ -40,6 +40,7 @@ namespace ATTILA.Environment
             BuildFence();
             BuildCampfire();
             BuildHorses();
+            BuildLivestock();
             BuildBanners();
             var player = BuildPlayer(director.Hero);
             BuildPeople();
@@ -197,6 +198,33 @@ namespace ATTILA.Environment
             var collider = horse.AddComponent<BoxCollider>();
             collider.size = new Vector3(2f, 1.6f, .9f);
             collider.center = new Vector3(0f, .8f, 0f);
+        }
+
+        /// <summary>Camels, sheep, a cart and a well: the aul reads as lived-in rather than as a set of markers.</summary>
+        private void BuildLivestock()
+        {
+            Prop(art != null && art.camel.Length > 0 ? art.camel[0] : null, new Vector3(-10.4f, 0f, -5.2f), 2.4f, art != null ? art.camel : null, .5f);
+            Prop(art != null && art.camel.Length > 0 ? art.camel[0] : null, new Vector3(-12.6f, 0f, -6.4f), 2.4f, art != null ? art.camel : null, .5f, 1.4f, true);
+            foreach (var spot in new[] { new Vector3(14.5f, 0f, 4.4f), new Vector3(15.8f, 0f, 3.2f), new Vector3(13.4f, 0f, 2.6f), new Vector3(16.4f, 0f, 5.4f) })
+                Prop(art != null ? art.sheep : null, spot, 1.2f, null, 0f, 0f, spot.x > 15f);
+            Prop(art != null ? art.cart : null, new Vector3(-7.4f, 0f, 8.6f), 2.2f);
+            Prop(art != null ? art.well : null, new Vector3(4.6f, 0f, -6.4f), 1.6f);
+        }
+
+        private void Prop(Sprite sprite, Vector3 position, float shadow, Sprite[] frames = null, float framesPerSecond = 0f, float delay = 0f, bool mirrored = false)
+        {
+            if (sprite == null) return;
+            var prop = new GameObject(sprite.name);
+            prop.transform.position = position;
+            var renderer = prop.AddComponent<SpriteRenderer>();
+            renderer.sprite = sprite;
+            renderer.flipX = mirrored;
+            prop.AddComponent<Billboard>();
+            if (frames != null && framesPerSecond > 0f) prop.AddComponent<SpriteFlipbook>().Configure(frames, framesPerSecond, delay);
+            AddShadow(prop.transform, shadow);
+            var collider = prop.AddComponent<BoxCollider>();
+            collider.size = new Vector3(Mathf.Max(.8f, shadow * .8f), 1.4f, .8f);
+            collider.center = new Vector3(0f, .7f, 0f);
         }
 
         private void BuildBanners()

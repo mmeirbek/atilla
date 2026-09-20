@@ -38,6 +38,10 @@ namespace ATTILA.Environment
         public Sprite kazan;
         public Sprite asyk;
         public Sprite saka;
+        public Sprite[] camel;
+        public Sprite sheep;
+        public Sprite cart;
+        public Sprite well;
 
         [Header("Scenes")]
         public Sprite campfireScene;

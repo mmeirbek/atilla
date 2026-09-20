@@ -104,7 +104,24 @@ namespace ATTILA.Editor
                 Require(string.IsNullOrEmpty(entry.look) || LookSet(entry.look) != null, "Portrait look for entry " + entry.id);
             }
             foreach (var item in content.outfitItems)
+            {
                 Require(art.Icon(item.icon) != null, "Icon for outfit " + item.id);
+                Require(item.looks != null && item.looks.Length > 0, "Outfit " + item.id + " belongs to a character");
+                foreach (var look in item.looks) Require(LookSet(look) != null, $"Outfit {item.id}: look {look}");
+            }
+            foreach (var npc in content.npcs)
+                Require(content.Dialogue(npc.repeatDialogueId) != null, "Repeat line for " + npc.id);
+            var reachable = new HashSet<string>(content.encyclopediaEntries.Where(entry => entry.openFromStart).Select(entry => entry.id));
+            foreach (var chapter in content.chapters)
+                foreach (var beat in chapter.beats)
+                {
+                    foreach (var id in beat.unlockEntryIds ?? Array.Empty<string>()) reachable.Add(id);
+                    if (beat.campfire != null)
+                        foreach (var topic in beat.campfire.topics)
+                            if (!string.IsNullOrEmpty(topic.unlockEntryId)) reachable.Add(topic.unlockEntryId);
+                }
+            foreach (var entry in content.encyclopediaEntries)
+                Require(reachable.Contains(entry.id), "Entry " + entry.id + " can actually be opened");
             Debug.Log($"ATTILA CONTENT VALIDATION PASS: {Report.Count} checks.");
         }
 

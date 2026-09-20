@@ -36,7 +36,7 @@ namespace ATTILA.UI
             var hint = GameUiKit.Label(canvas.transform, "← →  ТАҢДАУ        ENTER  БАСТАУ", 20, MenuUiKit.Parchment, TextAnchor.MiddleCenter, 0, 0, 900, 34);
             hint.rectTransform.anchorMin = hint.rectTransform.anchorMax = new Vector2(.5f, .045f);
             hint.rectTransform.anchoredPosition = Vector2.zero;
-            AudioService.PlayMusic(MusicTrack.Menu);
+            AudioService.PlayMusic(MusicTrack.Select);
             Refresh(true);
         }
 
@@ -130,7 +130,7 @@ namespace ATTILA.UI
 
                 string label = progress.completed ? "ҚАЙТА ОЙНАУ" : progress.beatIndex > 0 ? "ЖАЛҒАСТЫРУ" : "БАСТАУ";
                 var play = MenuPixelButton.Create(card.transform, label, () => screen.Select(index));
-                UiFactory.SetRect(play.GetComponent<RectTransform>(), new Vector2(.5f, 0f), new Vector2(380, 66), new Vector2(0, 62));
+                UiFactory.SetRect(play.GetComponent<RectTransform>(), new Vector2(.5f, 0f), new Vector2(430, 84), new Vector2(0, 56));
                 action = play.gameObject;
 
                 var trigger = card.gameObject.AddComponent<EventTrigger>();

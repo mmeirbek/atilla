@@ -3,7 +3,7 @@ using UnityEngine;
 namespace ATTILA.Audio
 {
     public enum Sfx { Hover, Click, Blip, Reward, Fail, Step, Ring, Toss, Hit }
-    public enum MusicTrack { None, Menu, Aul, Night }
+    public enum MusicTrack { None, Menu, Select, Aul, Night, Battle, Map }
 
     /// <summary>
     /// Placeholder sound synthesised in code: plucked strings (Karplus-Strong) on a pentatonic scale for the music,
@@ -17,6 +17,8 @@ namespace ATTILA.Audio
         private static readonly int[] PhraseA = { 0, 2, 3, 2, 4, 3, 2, 0, 2, 3, 4, 5, 4, 3, 2, -1 };
         private static readonly int[] PhraseB = { 5, 4, 3, 4, 2, 3, 2, 0, -1, 0, 2, 0, 3, 2, 0, -1 };
         private static readonly int[] PhraseSparse = { 0, Rest, 2, Rest, 3, Rest, 2, Rest, 4, Rest, 3, Rest, 2, Rest, 0, Rest };
+        private static readonly int[] PhraseDrive = { 0, 0, 3, 0, 4, 3, 0, -2, 0, 0, 3, 4, 5, 4, 3, 0 };
+        private static readonly int[] PhraseTravel = { 0, 2, 4, 5, 7, 5, 4, 2, 0, 2, 4, 2, 3, 2, 0, Rest };
 
         public static AudioClip Music(MusicTrack track)
         {
@@ -24,7 +26,10 @@ namespace ATTILA.Audio
             switch (track)
             {
                 case MusicTrack.Menu: return Compose("Music Menu", rng, 72f, new[] { PhraseSparse, PhraseA, PhraseSparse, PhraseB }, false, .55f);
+                case MusicTrack.Select: return Compose("Music Select", rng, 88f, new[] { PhraseB, PhraseA, PhraseB, PhraseSparse }, false, .58f);
                 case MusicTrack.Night: return Compose("Music Night", rng, 58f, new[] { PhraseSparse, PhraseSparse, PhraseB, PhraseSparse }, false, .5f);
+                case MusicTrack.Battle: return Compose("Music Battle", rng, 132f, new[] { PhraseDrive, PhraseDrive, PhraseB, PhraseDrive }, true, .62f);
+                case MusicTrack.Map: return Compose("Music Map", rng, 96f, new[] { PhraseTravel, PhraseA, PhraseTravel, PhraseB }, true, .56f);
                 default: return Compose("Music Aul", rng, 104f, new[] { PhraseA, PhraseA, PhraseB, PhraseA }, true, .6f);
             }
         }

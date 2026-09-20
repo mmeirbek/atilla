@@ -121,6 +121,10 @@ namespace ATTILA.Editor
             set.kazan = SpriteAt("Props/kazan.png");
             set.asyk = SpriteAt("Props/asyk.png");
             set.saka = SpriteAt("Props/saka.png");
+            set.camel = new[] { SpriteAt("Props/camel_0.png"), SpriteAt("Props/camel_1.png") };
+            set.sheep = SpriteAt("Props/sheep.png");
+            set.cart = SpriteAt("Props/cart.png");
+            set.well = SpriteAt("Props/well.png");
             set.campfireScene = SpriteAt("Scenes/campfire.png");
             set.mapScene = SpriteAt("Scenes/map.png");
             set.asykScene = SpriteAt("Scenes/asyk_ring.png");

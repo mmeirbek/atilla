@@ -37,6 +37,12 @@ MonoBehaviour:
   kazan: {fileID: 21300000, guid: 0c48e2febb0f34eeda824c20790e06bf, type: 3}
   asyk: {fileID: 21300000, guid: e9b8fc77bad9144b0b6dd3873e978f9b, type: 3}
   saka: {fileID: 21300000, guid: 8b5edde87ab644ddd971c2f31d223260, type: 3}
+  camel:
+  - {fileID: 21300000, guid: 5e4b27da2639745fea00fc43b67f4eb3, type: 3}
+  - {fileID: 21300000, guid: b68f9c0a18b5146aab38d3e08845e5d6, type: 3}
+  sheep: {fileID: 21300000, guid: bb748a7a515ac480c9b05d399b330a4c, type: 3}
+  cart: {fileID: 21300000, guid: c35d7f742b8d347529b8b379b64e9496, type: 3}
+  well: {fileID: 21300000, guid: 774adbd38e0fa4aacb0746e0b8d26e0b, type: 3}
   campfireScene: {fileID: 21300000, guid: 820d690cf04e24255bc20b9a6499f7f0, type: 3}
   mapScene: {fileID: 21300000, guid: 99098ac4fb8814a9cbdaad31626af64f, type: 3}
   asykScene: {fileID: 21300000, guid: 1e005f47e551e4d37a3262b6ec1a1297, type: 3}
@@ -53,15 +59,33 @@ MonoBehaviour:
     sprite: {fileID: 21300000, guid: 184bea5448d1a4561889cb5db8459e17, type: 3}
   - id: dombra
     sprite: {fileID: 21300000, guid: 3ede66e232853471685b41ee5f747d66, type: 3}
+  - id: dulyga
+    sprite: {fileID: 21300000, guid: 1ad084b1dd431434a8603ef6a164a98b, type: 3}
   - id: etik
     sprite: {fileID: 21300000, guid: 75dcf4bc0e08f49269e5bd94c39f9eed, type: 3}
+  - id: horse
+    sprite: {fileID: 21300000, guid: d159da082af574d9dbbb7fd0c704ea69, type: 3}
   - id: kamzol
     sprite: {fileID: 21300000, guid: a8490aa49ef6648babb26ce40891202f, type: 3}
   - id: kimeshek
     sprite: {fileID: 21300000, guid: 74fa528126be84fd3af9471546bb6996, type: 3}
+  - id: koilek
+    sprite: {fileID: 21300000, guid: 4407c012ecf744cd2b69e7a51f23d71f, type: 3}
   - id: lock
     sprite: {fileID: 21300000, guid: 5047fef79fba04cccaa69fcf3382f013, type: 3}
+  - id: naiza
+    sprite: {fileID: 21300000, guid: 98db5f5be40e64412ab63b85592265df, type: 3}
+  - id: sauyt
+    sprite: {fileID: 21300000, guid: aae77e47c81c64589a6ca9f015f19687, type: 3}
   - id: shapan
     sprite: {fileID: 21300000, guid: 7c42c1fe44ab34de3aff85273075d10e, type: 3}
   - id: swords
     sprite: {fileID: 21300000, guid: 9759ff620351c4682921ae09ac52a116, type: 3}
+  - id: takiya
+    sprite: {fileID: 21300000, guid: cf100c8c905c2427f93edaa1a7df0c44, type: 3}
+  - id: tymak
+    sprite: {fileID: 21300000, guid: cc9b2b2b8d31143d6a188ac6d0c6980d, type: 3}
+  - id: yurt
+    sprite: {fileID: 21300000, guid: c8d5559df82fa4993b8ee55f4891878e, type: 3}
+  - id: zhuz
+    sprite: {fileID: 21300000, guid: 4e5d5c44a20e74090bf3a439e9a30dd8, type: 3}

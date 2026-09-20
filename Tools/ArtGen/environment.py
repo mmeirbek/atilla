@@ -209,6 +209,82 @@ def horse(coat, mane, saddle, frame):
     return outlined(c.image)
 
 
+def camel(frame):
+    c = Canvas(64, 56)
+    coat, dark = (196, 162, 108), (160, 128, 82)
+    bob = 1 if frame else 0
+    for x in (16, 40):
+        c.rect(x, 34, x + 3, 50, dark)
+        c.rect(x + 8, 34, x + 11, 50, coat)
+        c.rect(x, 50, x + 3, 51, (70, 54, 38))
+        c.rect(x + 8, 50, x + 11, 51, (70, 54, 38))
+    c.ellipse(12, 20, 52, 38, coat)
+    c.poly([(20, 22), (26, 8), (32, 22)], coat)
+    c.poly([(34, 22), (40, 10), (46, 22)], coat)
+    c.poly([(46, 24), (52, 12 + bob), (56, 12 + bob), (52, 26)], coat)
+    c.ellipse(50, 6 + bob, 62, 16 + bob, coat)
+    c.px(59, 10 + bob, (40, 30, 26))
+    c.rect(52, 4 + bob, 54, 6 + bob, coat)
+    c.rect(24, 16, 38, 22, (150, 30, 34))
+    c.rect(24, 20, 38, 21, GOLD)
+    c.poly([(12, 24), (8, 30), (10, 34), (13, 28)], dark)
+    return outlined(c.image)
+
+
+def sheep():
+    c = Canvas(40, 30)
+    wool, dark = (236, 230, 216), (196, 190, 176)
+    c.ellipse(6, 6, 32, 22, wool)
+    for x in range(8, 31, 4):
+        c.px(x, 9 + (x % 3), dark)
+        c.px(x + 1, 16, dark)
+    c.ellipse(26, 4, 36, 14, (74, 62, 56))
+    c.px(33, 8, (30, 24, 22))
+    c.poly([(27, 4), (24, 1), (29, 2)], (60, 50, 44))
+    for x in (10, 16, 24, 28):
+        c.rect(x, 20, x + 2, 27, (74, 62, 56))
+    return outlined(c.image)
+
+
+def cart():
+    c = Canvas(64, 48)
+    wood, dark = (146, 102, 58), (108, 72, 40)
+    c.rect(8, 18, 54, 30, wood)
+    c.rect(8, 18, 54, 20, (176, 130, 78))
+    for x in range(10, 54, 6):
+        c.rect(x, 21, x + 1, 29, dark)
+    c.poly([(10, 18), (52, 18), (46, 8), (16, 8)], (214, 198, 164))
+    c.rect(16, 8, 46, 10, BURGUNDY)
+    for x in range(18, 45, 6):
+        c.px(x, 9, GOLD)
+    for cx2 in (18, 44):
+        c.ellipse(cx2 - 9, 28, cx2 + 9, 46, dark)
+        c.ellipse(cx2 - 6, 31, cx2 + 6, 43, (170, 128, 78))
+        c.ellipse(cx2 - 2, 35, cx2 + 2, 39, dark)
+        for a in range(0, 360, 45):
+            x2, y2 = cx2 + math.cos(math.radians(a)) * 7, 37 + math.sin(math.radians(a)) * 7
+            c.line(cx2, 37, x2, y2, dark)
+    c.rect(52, 20, 63, 22, wood)
+    return outlined(c.image)
+
+
+def well():
+    c = Canvas(48, 52)
+    stone, dark = (152, 146, 136), (112, 108, 100)
+    c.ellipse(6, 26, 42, 46, stone)
+    c.ellipse(12, 30, 36, 42, (58, 52, 50))
+    for x in range(8, 41, 6):
+        c.rect(x, 34, x + 4, 40, dark)
+        c.rect(x + 1, 41, x + 5, 45, stone)
+    c.rect(10, 6, 13, 30, WOOD)
+    c.rect(35, 6, 38, 30, WOOD)
+    c.poly([(6, 8), (42, 8), (38, 0), (10, 0)], (150, 104, 60))
+    c.rect(6, 6, 42, 9, (120, 80, 44))
+    c.rect(22, 9, 26, 18, (90, 74, 60))
+    c.rect(20, 18, 28, 24, (110, 82, 54))
+    return outlined(c.image)
+
+
 def campfire_frames():
     frames = []
     for i in range(4):
@@ -440,6 +516,65 @@ def map_scene():
     for _ in range(26):
         x, y = rng.randint(240, 300), rng.randint(152, 176)
         draw.point([(x, y), (x + 1, y)], fill=(196, 150, 96))
+    def waves(x0, y0, x1, y1, count):
+        for i in range(count):
+            wx = rng.randint(x0, x1)
+            wy = rng.randint(y0, y1)
+            draw.line([(wx, wy), (wx + 3, wy - 1), (wx + 6, wy)], fill=(96, 124, 132))
+
+    waves(4, 80, 26, 240, 22)
+    waves(94, 136, 128, 164, 8)
+    waves(268, 98, 370, 118, 10)
+
+    def town(x, y, big=False):
+        width = 11 if big else 8
+        height = 8 if big else 6
+        draw.rectangle([x - width, y - height, x + width, y + 2], fill=(206, 176, 130))
+        draw.rectangle([x - width, y - height, x + width, y + 2], outline=INK)
+        for tx in range(x - width, x + width, 4):
+            draw.rectangle([tx, y - height - 3, tx + 2, y - height], fill=(206, 176, 130))
+            draw.line([tx, y - height - 3, tx + 2, y - height - 3], fill=INK)
+        if big:
+            draw.polygon([(x - 4, y - height), (x, y - height - 9), (x + 4, y - height)], fill=(150, 116, 80))
+            draw.point([(x, y - height - 10)], fill=GOLD)
+        draw.rectangle([x - 2, y - 2, x + 1, y + 2], fill=(110, 76, 48))
+
+    def camp(x, y, count=3):
+        for i in range(count):
+            dx, dy = i * 11 - count * 5, (i % 2) * 5
+            draw.polygon([(x + dx - 5, y + dy), (x + dx + 5, y + dy), (x + dx + 3, y + dy - 4), (x + dx, y + dy - 7), (x + dx - 3, y + dy - 4)], fill=(232, 216, 180))
+            draw.line([(x + dx - 5, y + dy), (x + dx + 5, y + dy)], fill=INK)
+            draw.point([(x + dx, y + dy - 7)], fill=INK)
+
+    def caravan(x, y):
+        for i in range(3):
+            cx2 = x + i * 11
+            draw.line([(cx2, y), (cx2 + 5, y)], fill=(122, 86, 52))
+            draw.line([(cx2 + 1, y - 3), (cx2 + 2, y - 1)], fill=(122, 86, 52))
+            draw.line([(cx2 + 5, y), (cx2 + 6, y - 3)], fill=(122, 86, 52))
+            draw.point([(cx2, y + 2), (cx2 + 5, y + 2)], fill=(122, 86, 52))
+
+    def grove(x, y, count=4):
+        for i in range(count):
+            gx, gy = x + rng.randint(-8, 8), y + rng.randint(-5, 5)
+            draw.line([(gx, gy), (gx, gy - 4)], fill=(96, 78, 48))
+            draw.ellipse([gx - 3, gy - 8, gx + 3, gy - 3], fill=(118, 132, 76))
+
+    town(182, 188)
+    town(215, 206, True)
+    town(243, 216)
+    town(302, 226)
+    camp(268, 66)
+    camp(196, 116, 2)
+    camp(352, 150, 2)
+    camp(148, 196, 2)
+    caravan(250, 196)
+    caravan(170, 172)
+    grove(140, 170)
+    grove(206, 200, 3)
+    grove(300, 208, 3)
+    grove(392, 132, 3)
+    cx, cy = 432, 50
     cx, cy = 432, 50
     draw.ellipse([cx - 22, cy - 22, cx + 22, cy + 22], outline=INK)
     draw.ellipse([cx - 17, cy - 17, cx + 17, cy + 17], outline=(150, 110, 70))
@@ -453,14 +588,20 @@ def map_scene():
     for x, y in ((4, 4), (w - 13, 4), (4, h - 13), (w - 13, h - 13)):
         draw.rectangle([x, y, x + 8, y + 8], fill=BURGUNDY)
         draw.rectangle([x + 3, y + 3, x + 5, y + 5], fill=GOLD)
+    draw.rectangle([16, h - 40, 112, h - 16], fill=(214, 186, 138), outline=INK)
+    draw.line([(24, h - 24), (104, h - 24)], fill=INK)
+    for x in range(24, 105, 20):
+        draw.line([(x, h - 28), (x, h - 20)], fill=INK)
     return image.convert("RGBA")
 
 
 def map_labels(image, font_path):
     font = ImageFont.truetype(font_path, 8)
     draw = ImageDraw.Draw(image)
-    labels = [("Арал", 94, 116), ("Балқаш", 290, 84), ("Сырдария", 128, 188), ("Сарыарқа", 236, 54), ("Жетісу", 390, 132),
-              ("Алатау", 380, 206), ("Ұлытау", 206, 102), ("Қаратау", 150, 150), ("Шу", 262, 196), ("Каспий", 44, 58)]
+    labels = [("Арал", 94, 136), ("Балқаш", 290, 84), ("Сырдария", 120, 208), ("Сарыарқа", 236, 46), ("Жетісу", 392, 148),
+              ("Алатау", 380, 232), ("Ұлытау", 200, 96), ("Қаратау", 146, 152), ("Шу", 258, 186), ("Каспий", 30, 52),
+              ("Сығанақ", 160, 176), ("Түркістан", 196, 218), ("Отырар", 232, 228), ("Тараз", 292, 238), ("Ертіс", 352, 18),
+              ("Іле", 424, 158)]
     for text, x, y in labels:
         draw.text((x + 1, y + 1), text, font=font, fill=(236, 214, 170))
         draw.text((x, y), text, font=font, fill=INK)
@@ -591,6 +732,79 @@ def icon(name):
         c.line(12, 18, 28, 2, (120, 78, 44))
         c.line(13, 18, 29, 2, (150, 98, 56))
         c.rect(26, 1, 29, 4, (96, 60, 36))
+    elif name == "sauyt":
+        c.poly([(8, 4), (24, 4), (26, 26), (16, 30), (6, 26)], (150, 152, 162))
+        for y in range(6, 26, 4):
+            c.rect(7, y, 25, y + 1, (110, 112, 124))
+            for x in range(9, 25, 4):
+                c.px(x, y + 2, GOLD)
+        c.ellipse(13, 12, 19, 18, GOLD)
+        c.px(16, 15, GOLD_LIGHT)
+        c.rect(4, 4, 8, 12, (120, 74, 44))
+        c.rect(24, 4, 28, 12, (100, 60, 36))
+    elif name == "dulyga":
+        c.poly([(6, 22), (26, 22), (17, 3), (15, 3)], GOLD)
+        c.poly([(16, 22), (26, 22), (17, 3)], GOLD_DARK)
+        c.rect(4, 20, 28, 25, (236, 222, 194))
+        c.rect(4, 24, 8, 30, (120, 84, 50))
+        c.rect(24, 24, 28, 30, (100, 68, 42))
+        c.rect(15, 1, 17, 3, (170, 34, 40))
+        c.px(14, 0, (170, 34, 40))
+    elif name == "naiza":
+        c.rect(15, 8, 16, 31, WOOD)
+        c.poly([(13, 8), (18, 8), (16, 0)], (200, 204, 214))
+        c.px(16, 3, (240, 244, 250))
+        c.rect(13, 9, 18, 12, (170, 34, 40))
+        c.px(12, 13, (170, 34, 40))
+        c.px(19, 13, (170, 34, 40))
+    elif name == "koilek":
+        c.poly([(11, 5), (21, 5), (27, 29), (5, 29)], (170, 40, 60))
+        c.poly([(19, 5), (21, 5), (27, 29), (21, 29)], shade((170, 40, 60), .78))
+        c.rect(5, 26, 27, 27, GOLD)
+        c.rect(12, 5, 20, 7, (236, 222, 194))
+        c.poly([(3, 7), (11, 5), (11, 14), (4, 15)], (170, 40, 60))
+        c.poly([(29, 7), (21, 5), (21, 14), (28, 15)], shade((170, 40, 60), .8))
+        for x in range(9, 24, 5):
+            c.px(x, 20, GOLD_LIGHT)
+    elif name == "takiya":
+        c.ellipse(6, 10, 26, 26, (160, 40, 40))
+        c.rect(6, 20, 26, 24, GOLD)
+        for x in range(9, 25, 4):
+            c.px(x, 16, GOLD_LIGHT)
+        c.rect(15, 4, 17, 9, (236, 232, 222))
+        c.px(14, 3, (40, 30, 30))
+        c.px(17, 2, (236, 232, 222))
+    elif name == "tymak":
+        c.ellipse(8, 6, 24, 20, (90, 66, 44))
+        c.ellipse(3, 14, 29, 26, (170, 140, 104))
+        c.rect(3, 22, 8, 31, (170, 140, 104))
+        c.rect(24, 22, 29, 31, (140, 112, 82))
+        for x in range(5, 28, 3):
+            c.px(x, 20, (120, 96, 70))
+    elif name == "yurt":
+        c.poly([(3, 20), (29, 20), (22, 7), (10, 7)], (226, 212, 180))
+        c.rect(5, 20, 27, 28, (214, 198, 164))
+        c.rect(5, 19, 27, 21, BURGUNDY)
+        for x in range(6, 27, 4):
+            c.px(x, 20, GOLD)
+        c.rect(13, 22, 19, 29, (178, 76, 40))
+        c.rect(14, 5, 18, 7, (96, 62, 38))
+        c.line(10, 7, 16, 20, (196, 180, 148))
+        c.line(22, 7, 16, 20, (196, 180, 148))
+    elif name == "zhuz":
+        for cx2, cy2, col in ((16, 9, (150, 30, 34)), (9, 22, (40, 64, 124)), (23, 22, (34, 104, 98))):
+            c.ellipse(cx2 - 7, cy2 - 7, cx2 + 7, cy2 + 7, col)
+            c.ellipse(cx2 - 4, cy2 - 4, cx2 + 4, cy2 + 4, shade(col, 1.3))
+            c.px(cx2, cy2, GOLD)
+    elif name == "horse":
+        c.ellipse(6, 12, 24, 22, (140, 84, 48))
+        c.poly([(20, 14), (26, 5), (29, 6), (25, 16)], (140, 84, 48))
+        c.poly([(24, 4), (26, 1), (27, 5)], (140, 84, 48))
+        c.px(28, 8, (40, 30, 26))
+        c.rect(8, 20, 10, 29, (110, 64, 36))
+        c.rect(19, 20, 21, 29, (110, 64, 36))
+        c.poly([(6, 13), (2, 17), (3, 25), (6, 20)], (50, 34, 26))
+        c.rect(11, 10, 17, 13, (150, 30, 34))
     elif name == "lock":
         c.rect(8, 14, 23, 28, GOLD)
         c.rect(8, 14, 23, 15, GOLD_LIGHT)
@@ -607,7 +821,8 @@ def icon(name):
     return outlined(c.image)
 
 
-ICONS = ["shapan", "borik", "etik", "kimeshek", "kamzol", "belbeu", "asyk", "blindfold", "banner", "swords", "dombra", "lock"]
+ICONS = ["shapan", "borik", "etik", "kimeshek", "kamzol", "belbeu", "asyk", "blindfold", "banner", "swords", "dombra", "lock",
+         "sauyt", "dulyga", "naiza", "koilek", "takiya", "tymak", "yurt", "zhuz", "horse"]
 
 
 # ---------------------------------------------------------------- menu card composition

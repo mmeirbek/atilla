@@ -31,6 +31,7 @@ namespace ATTILA.Data
         public float interactionRadius = 2f;
         [Tooltip("Sprite look id under Resources/Data/Looks.")] public string look;
         [Tooltip("Shown when the player talks to this NPC while the story wants somebody else.")] public string idleDialogueId;
+        [Tooltip("Shown from the second time onwards, so the same speech is not repeated.")] public string repeatDialogueId;
     }
 
     [Serializable]
@@ -141,6 +142,7 @@ namespace ATTILA.Data
         public string id;
         public string category;
         public string title;
+        [Tooltip("Common knowledge: readable before the player unlocks anything.")] public bool openFromStart;
         [Tooltip("Look id whose portrait illustrates the entry.")] public string look;
         [Tooltip("Icon id from the MVP art set, used when no look is given.")] public string icon;
         [TextArea] public string lockedDescription;
@@ -154,6 +156,7 @@ namespace ATTILA.Data
     {
         public string id;
         public string icon;
+        [Tooltip("Look ids that wear this item; the wardrobe shows only what the previewed character wears.")] public string[] looks;
         public string slot;
         public string title;
         [TextArea] public string description;

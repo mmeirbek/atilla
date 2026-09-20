@@ -39,9 +39,9 @@ namespace ATTILA.UI
             fill.raycastTarget = false;
             UiFactory.Stretch(fill.rectTransform, Vector2.zero, Vector2.one, new Vector2(5, 5), new Vector2(-5, -5));
 
-            var text = UiFactory.Text(fill.transform, labelText, 29, TextAnchor.MiddleCenter, Cream);
+            var text = UiFactory.Text(fill.transform, labelText, 34, TextAnchor.MiddleCenter, Cream);
             text.raycastTarget = false;
-            UiFactory.Stretch(text.rectTransform, Vector2.zero, Vector2.one, new Vector2(28, 0), new Vector2(-28, 0));
+            UiFactory.Stretch(text.rectTransform, Vector2.zero, Vector2.one, new Vector2(34, 0), new Vector2(-34, 0));
 
             var left = CreateOrnament(fill.transform, "Left Ornament", true);
             var right = CreateOrnament(fill.transform, "Right Ornament", false);
@@ -65,7 +65,7 @@ namespace ATTILA.UI
 
         private static Graphic CreateOrnament(Transform parent, string name, bool leftSide)
         {
-            var ornament = UiFactory.Diamond(parent, 12f, Gold);
+            var ornament = UiFactory.Diamond(parent, 14f, Gold);
             ornament.name = name;
             var rect = ornament.rectTransform;
             rect.anchorMin = rect.anchorMax = new Vector2(leftSide ? 0f : 1f, .5f);

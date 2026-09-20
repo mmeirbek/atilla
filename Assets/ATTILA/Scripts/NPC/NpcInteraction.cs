@@ -59,6 +59,8 @@ namespace ATTILA.NPC
                 if (distance <= npc.InteractionRadius && distance < bestDistance) { nearest = npc; bestDistance = distance; }
             }
             if (director.IsModal) { ui?.SetPrompt(string.Empty); return; }
+            // The key press that closed a dialogue must not open the next one in the same breath.
+            if (ui != null && Time.unscaledTime - ui.ClosedAt < .25f) { ui.SetPrompt(string.Empty); return; }
             ui?.SetPrompt(nearest == null ? string.Empty : $"E  ·  {nearest.DisplayName}");
             if (nearest != null && Input.GetKeyDown(KeyCode.E)) nearest.Interact();
         }

@@ -78,7 +78,14 @@ namespace ATTILA.Gameplay
                 return;
             }
             var definition = Npc(npc.Id);
-            Speak(Content.Dialogue(definition?.idleDialogueId), null);
+            if (definition == null) return;
+            // The full greeting plays once; after that the NPC says a short line instead of repeating itself.
+            string met = "MET_" + definition.id;
+            var line = Quest.HasFlag(met) ? Content.Dialogue(definition.repeatDialogueId) ?? Content.Dialogue(definition.idleDialogueId)
+                                          : Content.Dialogue(definition.idleDialogueId);
+            Quest.SetFlag(met);
+            SaveService.Save();
+            Speak(line, null);
         }
 
         private void Speak(DialogueDefinition dialogue, Action complete)

@@ -54,6 +54,7 @@ namespace ATTILA.Gameplay
             root.transform.SetParent(ui.OverlayRoot, false);
             UiFactory.Stretch((RectTransform)root.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
             MenuUiKit.Background(root.transform, .62f);
+            AudioService.PlayMusic(MusicTrack.Battle);
 
             heroHome = new Vector2(-460, -40);
             enemyHome = new Vector2(460, -40);
@@ -82,7 +83,7 @@ namespace ATTILA.Gameplay
             Button Action(string label, string hint, float x, Action click)
             {
                 var button = MenuPixelButton.Create(actionPanel.Content, label, click);
-                UiFactory.SetRect(button.GetComponent<RectTransform>(), new Vector2(.5f, .62f), new Vector2(280, 86), new Vector2(x, 0));
+                UiFactory.SetRect(button.GetComponent<RectTransform>(), new Vector2(.5f, .62f), new Vector2(300, 98), new Vector2(x, 0));
                 var note = GameUiKit.Label(actionPanel.Content, hint, 20, GameUiKit.Muted, TextAnchor.MiddleCenter, 0, 0, 280, 30);
                 note.rectTransform.anchorMin = note.rectTransform.anchorMax = new Vector2(.5f, .2f);
                 note.rectTransform.anchoredPosition = new Vector2(x, 0);

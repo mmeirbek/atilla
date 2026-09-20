@@ -49,6 +49,8 @@ namespace ATTILA.UI
         private StoryDirector director;
 
         public bool DialogueActive => dialogue != null || waitingForChoice;
+        /// <summary>Time the last dialogue closed; interaction ignores the same key press that closed it.</summary>
+        public float ClosedAt { get; private set; } = -1f;
         public Transform OverlayRoot => overlayRoot.transform;
         public Canvas Canvas => canvas;
 
@@ -246,8 +248,8 @@ namespace ATTILA.UI
                 var rect = button.GetComponent<RectTransform>();
                 rect.anchorMin = rect.anchorMax = new Vector2(0f, 0f);
                 rect.pivot = new Vector2(0f, 0f);
-                rect.sizeDelta = new Vector2(600, 74);
-                rect.anchoredPosition = new Vector2(250 + i * 620, 26);
+                rect.sizeDelta = new Vector2(640, 88);
+                rect.anchoredPosition = new Vector2(250 + i * 660, 22);
                 choiceButtons.Add(button);
             }
         }
@@ -297,6 +299,7 @@ namespace ATTILA.UI
             ClearChoices();
             dialogueText.rectTransform.sizeDelta = new Vector2(1200, 150);
             dialoguePanel.SetActive(false);
+            ClosedAt = Time.unscaledTime;
             complete?.Invoke();
         }
 
@@ -362,9 +365,9 @@ namespace ATTILA.UI
             GameUiKit.Label(frame.Content, "ТАҒЫ БІР МҮМКІНДІК", 34, MenuUiKit.Gold, TextAnchor.UpperCenter, 40, 34, 780, 44);
             GameUiKit.Label(frame.Content, message, 26, MenuUiKit.Cream, TextAnchor.UpperCenter, 60, 110, 740, 110);
             var again = MenuPixelButton.Create(frame.Content, "ҚАЙТАЛАУ", () => { Destroy(host); retry?.Invoke(); });
-            UiFactory.SetRect(again.GetComponent<RectTransform>(), new Vector2(.32f, .18f), new Vector2(340, 78), Vector2.zero);
+            UiFactory.SetRect(again.GetComponent<RectTransform>(), new Vector2(.32f, .18f), new Vector2(400, 92), Vector2.zero);
             var back = MenuPixelButton.Create(frame.Content, "КЕЙІНІРЕК", () => { Destroy(host); giveUp?.Invoke(); });
-            UiFactory.SetRect(back.GetComponent<RectTransform>(), new Vector2(.70f, .18f), new Vector2(340, 78), Vector2.zero);
+            UiFactory.SetRect(back.GetComponent<RectTransform>(), new Vector2(.70f, .18f), new Vector2(400, 92), Vector2.zero);
             AudioService.Play(Sfx.Fail);
         }
 
@@ -381,11 +384,11 @@ namespace ATTILA.UI
             GameUiKit.Label(frame.Content, text, 30, MenuUiKit.Cream, TextAnchor.UpperCenter, 90, 210, 1040, 210);
             GameUiKit.Label(frame.Content, $"ЖИНАЛҒАН XP: {xp}          ЭНЦИКЛОПЕДИЯ: +{entries}", 24, MenuUiKit.Gold, TextAnchor.UpperCenter, 90, 430, 1040, 40);
             var encyclopedia = MenuPixelButton.Create(frame.Content, "ЭНЦИКЛОПЕДИЯ", () => toEncyclopedia?.Invoke());
-            UiFactory.SetRect(encyclopedia.GetComponent<RectTransform>(), new Vector2(.26f, .12f), new Vector2(360, 82), Vector2.zero);
+            UiFactory.SetRect(encyclopedia.GetComponent<RectTransform>(), new Vector2(.25f, .115f), new Vector2(400, 94), Vector2.zero);
             var roles = MenuPixelButton.Create(frame.Content, "БАСҚА КЕЙІПКЕР", () => toRoles?.Invoke());
-            UiFactory.SetRect(roles.GetComponent<RectTransform>(), new Vector2(.5f, .12f), new Vector2(380, 82), Vector2.zero);
+            UiFactory.SetRect(roles.GetComponent<RectTransform>(), new Vector2(.5f, .115f), new Vector2(420, 94), Vector2.zero);
             var menu = MenuPixelButton.Create(frame.Content, "БАСТЫ МӘЗІР", () => toMenu?.Invoke());
-            UiFactory.SetRect(menu.GetComponent<RectTransform>(), new Vector2(.74f, .12f), new Vector2(360, 82), Vector2.zero);
+            UiFactory.SetRect(menu.GetComponent<RectTransform>(), new Vector2(.75f, .115f), new Vector2(400, 94), Vector2.zero);
             AudioService.Play(Sfx.Reward);
         }
 

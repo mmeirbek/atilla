@@ -35,7 +35,7 @@ namespace ATTILA.UI
             canvas.transform.SetParent(transform, false);
             var veil = UiFactory.Panel(canvas.transform, new Color(.06f, .03f, .03f, .72f));
             UiFactory.Stretch(veil.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-            var frame = GameUiKit.InkPanel(canvas.transform, new Vector2(.5f, .5f), new Vector2(760, 720), Vector2.zero);
+            var frame = GameUiKit.InkPanel(canvas.transform, new Vector2(.5f, .5f), new Vector2(820, 780), Vector2.zero);
             GameUiKit.Label(frame.Content, "ҮЗІЛІС", 40, MenuUiKit.Gold, TextAnchor.UpperCenter, 30, 40, 680, 56);
             GameUiKit.Pixel(frame.Content, 200, 112, 340, 3, MenuUiKit.Gold);
             menuRoot = frame.Content;
@@ -50,7 +50,7 @@ namespace ATTILA.UI
         private void Button(string label, float y, System.Action action)
         {
             var button = MenuPixelButton.Create(menuRoot, label, action);
-            UiFactory.SetRect(button.GetComponent<RectTransform>(), new Vector2(.5f, y), new Vector2(600, 82), Vector2.zero);
+            UiFactory.SetRect(button.GetComponent<RectTransform>(), new Vector2(.5f, y), new Vector2(660, 96), Vector2.zero);
         }
 
         private void Resume()

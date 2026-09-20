@@ -74,32 +74,45 @@ namespace ATTILA.Editor
 
         private static CampfireTopic Topic(string label, string dialogue, string entry = null) => new() { label = label, dialogueId = dialogue, unlockEntryId = entry };
 
+        private static NpcDefinition Npc(string id, string name, string look, float radius) => new()
+        {
+            id = id, displayName = name, look = look, interactionRadius = radius,
+            idleDialogueId = "DIA_IDLE_" + id, repeatDialogueId = "DIA_AGAIN_" + id
+        };
+
         private static List<NpcDefinition> Npcs() => new()
         {
-            new NpcDefinition { id = "NPC_BI", displayName = "Би", look = "bi", interactionRadius = 2.3f, idleDialogueId = "DIA_IDLE_BI" },
-            new NpcDefinition { id = "NPC_AISHA", displayName = "Айша", look = "woman", interactionRadius = 2.2f, idleDialogueId = "DIA_IDLE_AISHA" },
-            new NpcDefinition { id = "NPC_CHILDREN", displayName = "Балалар", look = "child", interactionRadius = 2.4f, idleDialogueId = "DIA_IDLE_CHILDREN" },
-            new NpcDefinition { id = "NPC_ELDER", displayName = "Ақсақал", look = "elder", interactionRadius = 2.4f, idleDialogueId = "DIA_IDLE_ELDER" },
-            new NpcDefinition { id = "NPC_HERDER", displayName = "Малшы", look = "resident", interactionRadius = 2.0f, idleDialogueId = "DIA_IDLE_HERDER" },
-            new NpcDefinition { id = "NPC_ENVOY_WEST", displayName = "Кіші жүз елшісі", look = "envoy", interactionRadius = 2.3f, idleDialogueId = "DIA_IDLE_ENVOY_WEST" },
-            new NpcDefinition { id = "NPC_ENVOY_SOUTH", displayName = "Ұлы жүз елшісі", look = "envoy2", interactionRadius = 2.3f, idleDialogueId = "DIA_IDLE_ENVOY_SOUTH" },
-            new NpcDefinition { id = "NPC_COMMANDER", displayName = "Жүзбасы", look = "warrior", interactionRadius = 2.3f, idleDialogueId = "DIA_IDLE_COMMANDER" },
-            new NpcDefinition { id = "NPC_SMITH", displayName = "Ұста", look = "resident", interactionRadius = 2.2f, idleDialogueId = "DIA_IDLE_SMITH" },
-            new NpcDefinition { id = "NPC_SCOUT", displayName = "Барлаушы", look = "envoy", interactionRadius = 2.3f, idleDialogueId = "DIA_IDLE_SCOUT" }
+            Npc("NPC_BI", "Би", "bi", 2.3f),
+            Npc("NPC_AISHA", "Айша", "woman", 2.2f),
+            Npc("NPC_CHILDREN", "Балалар", "child", 2.4f),
+            Npc("NPC_ELDER", "Ақсақал", "elder", 2.4f),
+            Npc("NPC_HERDER", "Малшы", "resident", 2.0f),
+            Npc("NPC_ENVOY_WEST", "Кіші жүз елшісі", "envoy", 2.3f),
+            Npc("NPC_ENVOY_SOUTH", "Ұлы жүз елшісі", "envoy2", 2.3f),
+            Npc("NPC_COMMANDER", "Жүзбасы", "warrior", 2.3f),
+            Npc("NPC_SMITH", "Ұста", "resident", 2.2f),
+            Npc("NPC_SCOUT", "Барлаушы", "envoy", 2.3f)
         };
+
+        /// <summary>First greeting, then a short line so the same speech never plays twice.</summary>
+        private static void Chat(string npcId, string name, string look, string first, string again)
+        {
+            Say("DIA_IDLE_" + npcId, name, look, first);
+            Say("DIA_AGAIN_" + npcId, name, look, again);
+        }
 
         private static void IdleDialogues()
         {
-            Say("DIA_IDLE_BI", "Би", "bi", "Асықпа. Әр істің өз уақыты бар.");
-            Say("DIA_IDLE_AISHA", "Айша", "woman", "Ауылда шаруа көп. Кейінірек келіңіз.");
-            Say("DIA_IDLE_CHILDREN", "Балалар", "child", "Біз ойнап жүрміз! Кейін бізге қосылыңыз.");
-            Say("DIA_IDLE_ELDER", "Ақсақал", "elder", "Кешке от басында әңгіме айтамын.");
-            Say("DIA_IDLE_HERDER", "Малшы", "resident", "Жылқылар жайылымнан оралды. Бәрі аман.");
-            Say("DIA_IDLE_ENVOY_WEST", "Кіші жүз елшісі", "envoy", "Шешіміңізді күтеміз.");
-            Say("DIA_IDLE_ENVOY_SOUTH", "Ұлы жүз елшісі", "envoy2", "Ұлы жүз сізге сәлем айтты.");
-            Say("DIA_IDLE_COMMANDER", "Жүзбасы", "warrior", "Жасақ сапта тұр, батыр.");
-            Say("DIA_IDLE_SMITH", "Ұста", "resident", "Балғам тынбайды — қару-жарақ көп.");
-            Say("DIA_IDLE_SCOUT", "Барлаушы", "envoy", "Жау жақын. Сақ болыңыз.");
+            Chat("NPC_BI", "Би", "bi", "Асықпа. Әр істің өз уақыты бар.", "Иә?");
+            Chat("NPC_AISHA", "Айша", "woman", "Ауылда шаруа көп: жүк те, бала да менде.", "Шаруам бітпей жатыр.");
+            Chat("NPC_CHILDREN", "Балалар", "child", "Біз ойнап жүрміз! Кейін бізге қосылыңыз.", "Ойнаймыз ба?");
+            Chat("NPC_ELDER", "Ақсақал", "elder", "Кешке от басында әңгіме айтамын.", "Кешке кел.");
+            Chat("NPC_HERDER", "Малшы", "resident", "Жылқылар жайылымнан оралды. Бәрі аман.", "Жылқы аман.");
+            Chat("NPC_ENVOY_WEST", "Кіші жүз елшісі", "envoy", "Шешіміңізді күтеміз.", "Күтіп тұрмыз.");
+            Chat("NPC_ENVOY_SOUTH", "Ұлы жүз елшісі", "envoy2", "Ұлы жүз сізге сәлем айтты.", "Сәлем.");
+            Chat("NPC_COMMANDER", "Жүзбасы", "warrior", "Жасақ сапта тұр, батыр.", "Бұйрық күтемін.");
+            Chat("NPC_SMITH", "Ұста", "resident", "Балғам тынбайды — қару-жарақ көп.", "Жұмыс көп.");
+            Chat("NPC_SCOUT", "Барлаушы", "envoy", "Жау жақын. Сақ болыңыз.", "Сақ бол.");
         }
 
         // ------------------------------------------------------------ chapter I: Kerey, "Көш"
@@ -149,11 +162,11 @@ namespace ATTILA.Editor
                 At("NPC_HERDER", 10.5f, -1.5f, FacingHint.West), Figure("child_girl", 6.3f, 6.2f, FacingHint.West), Figure("woman", -10f, 12.4f), Figure("resident", 8f, 12f, FacingHint.West)
             });
             chapter.beats.Add(Beat("NPC_BI", "Бимен кеңес", "DIA_K_BI", 50, "KEREY_COUNCIL"));
-            chapter.beats.Add(Beat("NPC_AISHA", "Айшадан көш дайындығын біл", "DIA_K_AISHA", 30, "KEREY_PREPARE"));
+            chapter.beats.Add(Beat("NPC_AISHA", "Айшадан көш дайындығын біл", "DIA_K_AISHA", 30, "KEREY_PREPARE", BeatAction.None, "kosh"));
             chapter.beats.Add(Beat("NPC_CHILDREN", "Балалармен «Соқыр теке» ойна", "DIA_K_CHILDREN", 100, "KEREY_GAME", BeatAction.SokyrTeke, "sokyr_teke"));
             var night = Beat("NPC_ELDER", "Кешкі от басына бар", "DIA_K_ELDER", 50, "KEREY_NIGHT", BeatAction.Campfire);
             night.campfire = new CampfireDefinition { title = "Көш алдындағы түн" };
-            night.campfire.topics.AddRange(new[] { Topic("Ел неге көшеді?", "DIA_K_T1", "kazakh_khanate"), Topic("Жетісу жері", "DIA_K_T2"), Topic("Бабалар ойыны", "DIA_K_T3", "sokyr_teke") });
+            night.campfire.topics.AddRange(new[] { Topic("Ел неге көшеді?", "DIA_K_T1", "kazakh_khanate"), Topic("Жетісу жері", "DIA_K_T2", "kosh"), Topic("Бабалар ойыны", "DIA_K_T3", "sokyr_teke") });
             chapter.beats.Add(night);
             var route = Beat("NPC_BI", "Биге көшке белгі бер", "DIA_K_ROUTE", 100, "KEREY_COMPLETE", BeatAction.Map, "kerey_khan", "kazakh_khanate");
             route.map = new MapDefinition { title = "Көш жолы", goal = "Шу бойына, Жетісуға жету", startLabel = "Сырдария бойы", endLabel = "Шу, Қозыбасы",
@@ -227,7 +240,7 @@ namespace ATTILA.Editor
             night.campfire = new CampfireDefinition { title = "Түркістан алдындағы түн" };
             night.campfire.topics.AddRange(new[] { Topic("Жоңғар заманы", "DIA_A_T1", "dzungar_wars"), Topic("Шапан — құрмет белгісі", "DIA_A_T2", "shapan"), Topic("Асық ойыны", "DIA_A_T3", "asyk") });
             chapter.beats.Add(night);
-            var route = Beat("NPC_BI", "Түркістанға аттан", "DIA_A_ROUTE", 100, "ABYLAI_COMPLETE", BeatAction.Map, "abylai_khan");
+            var route = Beat("NPC_BI", "Түркістанға аттан", "DIA_A_ROUTE", 100, "ABYLAI_COMPLETE", BeatAction.Map, "abylai_khan", "turkistan");
             route.map = new MapDefinition { title = "Түркістанға жол", goal = "Үш жүздің жиынына жету", startLabel = "Сарыарқа", endLabel = "Түркістан",
                 route = new[] { new Vector2(.56f, .76f), new Vector2(.50f, .60f), new Vector2(.45f, .42f), new Vector2(.45f, .25f) } };
             chapter.beats.Add(route);
@@ -280,12 +293,12 @@ namespace ATTILA.Editor
                 Figure("warrior", 2.6f, 12.4f), Figure("warrior", -2.6f, 12.4f), Figure("warrior", 3.4f, 9.6f, FacingHint.West), Figure("resident", 10.8f, -2f, FacingHint.West)
             });
             chapter.beats.Add(Beat("NPC_COMMANDER", "Әскери кеңеске қатыс", "DIA_B_COUNCIL", 50, "KABANBAY_COUNCIL"));
-            chapter.beats.Add(Beat("NPC_SMITH", "Ұстадан қару-жарақ ал", "DIA_B_SMITH", 30, "KABANBAY_SMITH", BeatAction.None, "shapan"));
+            chapter.beats.Add(Beat("NPC_SMITH", "Ұстадан қару-жарақ ал", "DIA_B_SMITH", 30, "KABANBAY_SMITH", BeatAction.None, "sauyt"));
             chapter.beats.Add(Beat("NPC_AISHA", "Ауылдың аман екенін біл", "DIA_B_AISHA", 30, "KABANBAY_AUL"));
-            chapter.beats.Add(Beat("NPC_SCOUT", "Жекпе-жекке шық", "DIA_B_SCOUT", 150, "KABANBAY_DUEL", BeatAction.Duel, "dzungar_wars"));
+            chapter.beats.Add(Beat("NPC_SCOUT", "Жекпе-жекке шық", "DIA_B_SCOUT", 150, "KABANBAY_DUEL", BeatAction.Duel, "dzungar_wars", "zhekpe_zhek"));
             var night = Beat("NPC_ELDER", "Жеңіс түні: от басына бар", "DIA_B_ELDER", 50, "KABANBAY_NIGHT", BeatAction.Campfire);
             night.campfire = new CampfireDefinition { title = "Жеңіс түні" };
-            night.campfire.topics.AddRange(new[] { Topic("Соғыстар мен шайқастар", "DIA_B_T1", "dzungar_wars"), Topic("Батыр кім?", "DIA_B_T2"), Topic("Бабалар дәстүрі", "DIA_B_T3", "shapan") });
+            night.campfire.topics.AddRange(new[] { Topic("Соғыстар мен шайқастар", "DIA_B_T1", "dzungar_wars"), Topic("Батыр кім?", "DIA_B_T2", "sauyt"), Topic("Бабалар дәстүрі", "DIA_B_T3", "shapan") });
             chapter.beats.Add(night);
             var route = Beat("NPC_COMMANDER", "Аңырақайға аттан", "DIA_B_ROUTE", 100, "KABANBAY_COMPLETE", BeatAction.Map, "kabanbay_batyr");
             route.map = new MapDefinition { title = "Аңырақайға жол", goal = "Біріккен қолға қосылу", startLabel = "Сарыарқа", endLabel = "Аңырақай",
@@ -296,48 +309,95 @@ namespace ATTILA.Editor
 
         // ------------------------------------------------------------ encyclopedia and wardrobe
 
-        private static EncyclopediaEntryDefinition Entry(string id, string category, string title, string look, string icon, string locked, string text, string note) =>
-            new() { id = id, category = category, title = title, look = look, icon = icon, lockedDescription = locked, unlockedDescription = text, status = ContentStatus.Draft, sourceNote = Check + note };
+        private static EncyclopediaEntryDefinition Entry(string id, string category, string title, string look, string icon, string text, string note, bool open = false) =>
+            new()
+            {
+                id = id, category = category, title = title, look = look, icon = icon, openFromStart = open,
+                lockedDescription = "Ойын барысында ашылады.", unlockedDescription = text,
+                status = ContentStatus.Draft, sourceNote = Check + note
+            };
 
         private static List<EncyclopediaEntryDefinition> Entries() => new()
         {
-            Entry("kerey_khan", "ТҰЛҒАЛАР", "Керей хан", "kerey", null, "«Көш» тарауында ашылады.",
+            Entry("kerey_khan", "ТҰЛҒАЛАР", "Керей хан", "kerey", null,
                 "Қазақ хандығының негізін Жәнібекпен бірге қалаған алғашқы хан. Ел оның тұсында Шу бойы мен Қозыбасы өңіріне қоныстанды.",
                 "годы правления Керея, роль Жәнібека, Қозыбасы"),
-            Entry("abylai_khan", "ТҰЛҒАЛАР", "Абылай хан", "abylai", null, "«Бірлік» тарауында ашылады.",
-                "XVIII ғасырдағы қазақ ханы, қолбасшы және дипломат. Жоңғар, Цин және Ресей арасында елдің дербестігін сақтауға тырысты. 1771 жылы Түркістанда хан сайланды.",
+            Entry("abylai_khan", "ТҰЛҒАЛАР", "Абылай хан", "abylai", null,
+                "XVIII ғасырдағы қазақ ханы, қолбасшы әрі дипломат. Жоңғар, Цин және Ресей арасында елдің дербестігін сақтауға тырысты. 1771 жылы Түркістанда хан сайланды.",
                 "годы жизни (1711–1781), избрание в 1771 г. в Туркестане"),
-            Entry("kabanbay_batyr", "ТҰЛҒАЛАР", "Қабанбай батыр", "kabanbay", null, "«Қорғаныс» тарауында ашылады.",
+            Entry("kabanbay_batyr", "ТҰЛҒАЛАР", "Қабанбай батыр", "kabanbay", null,
                 "XVIII ғасырдағы атақты батыр, қолбасшы. Жоңғар шапқыншылығына қарсы соғыстарда қол бастады. Халық оны «Дарабоз» деп атаған.",
                 "годы жизни, прозвище «Дарабоз», участие в сражениях"),
-            Entry("kazakh_khanate", "ОҚИҒАЛАР", "Қазақ хандығы", null, "banner", "«Көш» тарауында ашылады.",
+            Entry("bi_institute", "ТҰЛҒАЛАР", "Би және билік", "bi", null,
+                "Би — дауды шешетін, ел ішінде әділдік айтатын кісі. Оның беделі байлықпен емес, сөзімен және әділдігімен өлшенген.",
+                "институт биев, судебная практика", true),
+            Entry("kazakh_khanate", "ОҚИҒАЛАР", "Қазақ хандығы", null, "banner",
                 "XV ғасырдың ортасында Керей мен Жәнібек сұлтандар елін Жетісудың батысына бастап көшті. Осы көштен кейін Қазақ хандығы құрылды. Оқулықтарда көбіне 1465 жыл аталады.",
                 "дата основания (в источниках 1456/1465), маршрут откочёвки"),
-            Entry("dzungar_wars", "ОҚИҒАЛАР", "Жоңғар шапқыншылығы", null, "swords", "«Бірлік» не «Қорғаныс» тарауында ашылады.",
+            Entry("kosh", "ОҚИҒАЛАР", "Көш", null, "horse",
+                "Көш — ауылдың жайлауға не қыстауға көшуі. Киіз үй жығылып, түйеге артылады; алдыңғы легте қарттар мен балалар жүреді.",
+                "порядок перекочёвки, сезонные маршруты"),
+            Entry("dzungar_wars", "ОҚИҒАЛАР", "Жоңғар шапқыншылығы", null, "swords",
                 "1723 жылғы жойқын шабуыл халық жадында «Ақтабан шұбырынды» деген атпен қалды. Кейін Бұланты мен Аңырақай шайқастарында қазақ жасақтары жеңіске жетті.",
                 "даты: 1723, Бұланты (1727/1728), Аңырақай (1729/1730)"),
-            Entry("shapan", "МӘДЕНИЕТ", "Шапан", null, "shapan", "Шапан туралы әңгімені тыңда.",
+            Entry("turkistan", "ОҚИҒАЛАР", "Түркістан", null, "yurt",
+                "Сырдария бойындағы ежелгі қала. Хандық тұсында саяси және рухани орталық саналған; мұнда жиындар өткен.",
+                "статус Туркестана как столицы, Қожа Ахмет Ясауи кесенесі"),
+            Entry("zhekpe_zhek", "ОҚИҒАЛАР", "Жекпе-жек", null, "naiza",
+                "Үлкен шайқас алдында екі жақтың батыры жекпе-жекке шығатын дәстүр. Жеңіс жасақтың рухын көтерген.",
+                "традиция поединков перед сражением"),
+            Entry("kiiz_ui", "МӘДЕНИЕТ", "Киіз үй", null, "yurt",
+                "Кереге, уық және шаңырақтан құралатын көшпелі баспана. Тез жиналады, жылы әрі желге төзімді.",
+                "конструкция и части юрты", true),
+            Entry("zhuzder", "МӘДЕНИЕТ", "Үш жүз", null, "zhuz",
+                "Қазақ халқы дәстүрлі түрде Ұлы, Орта және Кіші жүз болып бөлінеді. Әр жүздің өз аймағы мен руларының тізбегі бар.",
+                "происхождение и территория жузов", true),
+            Entry("dombyra", "МӘДЕНИЕТ", "Домбыра", null, "dombra",
+                "Екі ішекті ұлттық аспап. Күй арқылы оқиға да, көңіл-күй де айтылады.",
+                "устройство домбры, жанр күй", true),
+            Entry("shapan", "МӘДЕНИЕТ", "Шапан", null, "shapan",
                 "Ұзын, кең етекті сырт киім. Құрметті қонаққа шапан жабу — ізет пен сыйластықтың белгісі.",
-                "описание кроя и обычая «шапан жабу»"),
-            Entry("asyk", "МӘДЕНИЕТ", "Асық ату", null, "asyk", "Асық ойынында ашылады.",
-                "Қойдың асығымен ойналатын ұлттық ойын. Ойыншы сақамен атып, сызықтағы асықтарды ұтып алады. Ойын көз мөлшері мен шыдамдылықты шыңдайды.",
+                "крой и обычай «шапан жабу»", true),
+            Entry("sauyt", "МӘДЕНИЕТ", "Сауыт", null, "sauyt",
+                "Батырдың темір не былғары сауыты. Дулыға, шарайна және белбеумен толықтырылған.",
+                "виды доспеха и их названия"),
+            Entry("asyk", "МӘДЕНИЕТ", "Асық ату", null, "asyk",
+                "Қойдың асығымен ойналатын ұлттық ойын. Ойыншы сақамен атып, сызықтағы асықтарды ұтып алады.",
                 "правила игры и название «сақа»"),
-            Entry("sokyr_teke", "МӘДЕНИЕТ", "Соқыр теке", null, "blindfold", "«Соқыр теке» ойынында ашылады.",
+            Entry("sokyr_teke", "МӘДЕНИЕТ", "Соқыр теке", null, "blindfold",
                 "Балалар ойыны. Көзі байланған «теке» дыбысқа қарап басқаларды ұстауға тырысады. Ұсталған ойыншы келесі «теке» болады.",
                 "правила игры")
         };
 
-        private static OutfitItemDefinition Outfit(string id, string slot, string title, string text) =>
-            new() { id = id, icon = id, slot = slot, title = title, description = text, status = ContentStatus.Draft, sourceNote = Check + "описание одежды" };
+        private static OutfitItemDefinition Outfit(string id, string slot, string title, string text, params string[] looks) =>
+            new() { id = id, icon = id, slot = slot, title = title, description = text, looks = looks, status = ContentStatus.Draft, sourceNote = Check + "описание одежды" };
 
         private static List<OutfitItemDefinition> Outfits() => new()
         {
-            Outfit("shapan", "СЫРТ КИІМ", "Шапан", "Ұзын, кең етекті сырт киім. Мерекеде де, күнделікті де киілген. Құрметті қонаққа шапан жабу — сый белгісі."),
-            Outfit("borik", "БАС КИІМ", "Бөрік", "Жиегі аң терісімен көмкерілген жылы бас киім. Төбесі мақпалмен не шұғамен тігіледі."),
-            Outfit("kimeshek", "ӘЙЕЛ БАС КИІМІ", "Кимешек", "Тұрмыс құрған әйелдің ақ матадан тігілген бас киімі. Кестесі мен пішіні өңірге қарай өзгереді."),
-            Outfit("kamzol", "ЖЕҢСІЗ КИІМ", "Камзол", "Көйлектің сыртынан киілетін, беліне қонымды жеңсіз киім. Жиегі өрнекпен әшекейленеді."),
-            Outfit("etik", "АЯҚ КИІМ", "Етік", "Былғарыдан тігілген биік қонышты аяқ киім. Атқа мінуге ыңғайлы."),
-            Outfit("belbeu", "БЕЛДІК", "Белбеу", "Шапан мен көйлекті буатын белдік. Оған пышақ пен қалта ілінген.")
+            Outfit("shapan", "СЫРТ КИІМ", "Шапан", "Ұзын, кең етекті сырт киім. Мерекеде де, күнделікті де киілген. Құрметті қонаққа шапан жабу — сый белгісі.",
+                "kerey", "abylai", "bi", "elder", "kabanbay"),
+            Outfit("borik", "БАС КИІМ", "Бөрік", "Жиегі аң терісімен көмкерілген жылы бас киім. Төбесі мақпалмен не шұғамен тігіледі.",
+                "kerey", "abylai"),
+            Outfit("tymak", "БАС КИІМ", "Тымақ", "Қыстың сақ желінен қорғайтын, құлақшыны бар терi бас киім.",
+                "elder", "resident", "envoy"),
+            Outfit("kimeshek", "ӘЙЕЛ БАС КИІМІ", "Кимешек", "Тұрмыс құрған әйелдің ақ матадан тігілген бас киімі. Кестесі мен пішіні өңірге қарай өзгереді.",
+                "woman"),
+            Outfit("koilek", "КӨЙЛЕК", "Көйлек", "Етегі кең, жеңі ұзын әйел көйлегі. Мерекелік көйлектің етегі оюмен көмкеріледі.",
+                "woman"),
+            Outfit("kamzol", "ЖЕҢСІЗ КИІМ", "Камзол", "Көйлектің сыртынан киілетін, беліне қонымды жеңсіз киім. Жиегі өрнекпен әшекейленеді.",
+                "woman", "abylai"),
+            Outfit("takiya", "БАС КИІМ", "Тақия", "Жеңіл, жұмсақ бас киім. Бала мен жастың тақиясына үкі тағылған.",
+                "child", "child_girl"),
+            Outfit("sauyt", "САУЫТ", "Сауыт", "Темір тақтайшалардан құралған батыр сауыты. Соққыны бөліп, салмағын иыққа таратады.",
+                "kabanbay", "warrior"),
+            Outfit("dulyga", "БАС КИІМ", "Дулыға", "Ұрысқа киілетін темір бас киім. Желкені жауып тұратын жақтаулары болады.",
+                "kabanbay", "warrior"),
+            Outfit("naiza", "ҚАРУ", "Найза", "Атты жауынгердің негізгі қаруы. Ұшына ту не шашақ байланған.",
+                "kabanbay", "warrior"),
+            Outfit("etik", "АЯҚ КИІМ", "Етік", "Былғарыдан тігілген биік қонышты аяқ киім. Атқа мінуге ыңғайлы.",
+                "kerey", "abylai", "kabanbay", "woman", "bi", "elder", "warrior", "child"),
+            Outfit("belbeu", "БЕЛДІК", "Белбеу", "Шапан мен көйлекті буатын белдік. Оған пышақ пен қалта ілінген.",
+                "kerey", "abylai", "kabanbay", "bi", "warrior")
         };
 
         // ------------------------------------------------------------ roles
