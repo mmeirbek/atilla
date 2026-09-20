@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5379eb69fe112c842a15cf70dd91cd68, type: 3}
+  m_Name: kabanbay
+  m_EditorClassIdentifier: Assembly-CSharp::ATTILA.Player.DirectionalSpriteSet
+  directions:
+  - idle: {fileID: 21300000, guid: 92333a4e867ff4dc1934d11b2d1f4bfe, type: 3}
+    walk:
+    - {fileID: 21300000, guid: babc4550beb1a410bb6ca74b42ffa838, type: 3}
+    - {fileID: 21300000, guid: 6eb5b51897e6d409487a3d6c8d5a6c6d, type: 3}
+  - idle: {fileID: 21300000, guid: 80178ad291d224f3ead24b2da83de407, type: 3}
+    walk:
+    - {fileID: 21300000, guid: b154ca4319b894941bace2b8f4ec5ea3, type: 3}
+    - {fileID: 21300000, guid: c3fc6989f6a7e4542989b3e79af1b68a, type: 3}
+  - idle: {fileID: 21300000, guid: f063b17bc4cc2468bb8ed05ef6048aad, type: 3}
+    walk:
+    - {fileID: 21300000, guid: 0b45f94fcd67f499e9cb9cfc081f223d, type: 3}
+    - {fileID: 21300000, guid: acc6c1d9eca0840bb80ac0ca3933db38, type: 3}
+  - idle: {fileID: 21300000, guid: d449099fdeef84894bd957e8ccfeac2f, type: 3}
+    walk:
+    - {fileID: 21300000, guid: 005e0768051b44b9e98cc82cbea44b4b, type: 3}
+    - {fileID: 21300000, guid: af9393804a4004ab2abe36aeca4358f9, type: 3}
+  - idle: {fileID: 21300000, guid: c7cf804c4503e4f0b9c2af66dc81b710, type: 3}
+    walk:
+    - {fileID: 21300000, guid: 8497ddfe15b2a491e888ca4101af6c6a, type: 3}
+    - {fileID: 21300000, guid: 99c307c06cdfd48d6bfc0f71cc4831ca, type: 3}
+  - idle: {fileID: 21300000, guid: 4fd9f9774f8fc4150acb3bbece50b2ba, type: 3}
+    walk:
+    - {fileID: 21300000, guid: a632fc5cf5fba47d5885b42bd8eb0552, type: 3}
+    - {fileID: 21300000, guid: 0f578430759ba42e7a48a701a0ef2af1, type: 3}
+  - idle: {fileID: 21300000, guid: c3bad4dfedb8740a1980d465d7bdb9fd, type: 3}
+    walk:
+    - {fileID: 21300000, guid: 17bb89171edd448c49ed7d63a30386ce, type: 3}
+    - {fileID: 21300000, guid: 47d7893deeff543d7bcc4d966dc33185, type: 3}
+  - idle: {fileID: 21300000, guid: de6af6bd9fffb45cbb403e3803df33c7, type: 3}
+    walk:
+    - {fileID: 21300000, guid: 9e9a812657a9941d1bcb60b2bb5ecfb2, type: 3}
+    - {fileID: 21300000, guid: 112847276962746958c5aabcd3778c4d, type: 3}
+  framesPerSecond: 6
+  visualScale: 1
+  portrait: {fileID: 21300000, guid: 73d1b30232b4749919b9dea95d7538b8, type: 3}
+  displayName: "\u049A\u0430\u0431\u0430\u043D\u0431\u0430\u0439"

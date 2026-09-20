@@ -1,0 +1,67 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 808d8e7692a654afa9a1d58fd61e47ef, type: 3}
+  m_Name: MvpArt
+  m_EditorClassIdentifier: Assembly-CSharp::ATTILA.Environment.MvpArtSet
+  ground: {fileID: 2800000, guid: db9c7873f8d3640b28f1ad935915df58, type: 3}
+  path: {fileID: 2800000, guid: 32d4bfc194d2a4dcd84c644abcde0f7f, type: 3}
+  yurtWall: {fileID: 2800000, guid: ab0a90aba24c3401cbf1ea11bc8ba5f0, type: 3}
+  yurtRoof: {fileID: 2800000, guid: 7a8dd794d4fab40d89b92c36a2aca670, type: 3}
+  yurtDoor: {fileID: 2800000, guid: 21ac6db930e4b4980a18336fb4c9308c, type: 3}
+  bannerRed: {fileID: 21300000, guid: 12e0b5d72754248ccbc6d526544514b4, type: 3}
+  bannerBlue: {fileID: 21300000, guid: e44360b9a1df64c2aa0c956a2bdc044f, type: 3}
+  bannerDark: {fileID: 21300000, guid: 67b8e085505fd4f4692bd6afb3656767, type: 3}
+  horseBay:
+  - {fileID: 21300000, guid: 6070c7513bbf54451bf449f83e06d728, type: 3}
+  - {fileID: 21300000, guid: 0c0f7df561aee471db368f4559fb0c15, type: 3}
+  horseGrey:
+  - {fileID: 21300000, guid: b835745ddf7a04eec804638976eb75e6, type: 3}
+  - {fileID: 21300000, guid: 7dde907fb9af842459417f159add48c2, type: 3}
+  campfire:
+  - {fileID: 21300000, guid: 53e80c22c9f904f84b6ea197211ed380, type: 3}
+  - {fileID: 21300000, guid: edb1c516e5d864ade92fbd3e012d96fd, type: 3}
+  - {fileID: 21300000, guid: fa4c643c7fe914767b78637c2e1722c5, type: 3}
+  - {fileID: 21300000, guid: e1fec559be878486592f542ec44c3606, type: 3}
+  glow: {fileID: 21300000, guid: 9ae634da407454d6c879b0ccd18c0fd6, type: 3}
+  shadow: {fileID: 21300000, guid: 0afe1b850b68d4a4d8fe8f504ccce476, type: 3}
+  marker: {fileID: 21300000, guid: aa4e5822f9ad147faadd816b730378a4, type: 3}
+  kazan: {fileID: 21300000, guid: 0c48e2febb0f34eeda824c20790e06bf, type: 3}
+  asyk: {fileID: 21300000, guid: e9b8fc77bad9144b0b6dd3873e978f9b, type: 3}
+  saka: {fileID: 21300000, guid: 8b5edde87ab644ddd971c2f31d223260, type: 3}
+  campfireScene: {fileID: 21300000, guid: 820d690cf04e24255bc20b9a6499f7f0, type: 3}
+  mapScene: {fileID: 21300000, guid: 99098ac4fb8814a9cbdaad31626af64f, type: 3}
+  asykScene: {fileID: 21300000, guid: 1e005f47e551e4d37a3262b6ec1a1297, type: 3}
+  icons:
+  - id: asyk
+    sprite: {fileID: 21300000, guid: a6f654ac2b70c4007be39e43c24f9076, type: 3}
+  - id: banner
+    sprite: {fileID: 21300000, guid: 68dcca84e426f4c1a9840507f7491434, type: 3}
+  - id: belbeu
+    sprite: {fileID: 21300000, guid: 8529a9ee56ed549a180b0fb66b1c3d93, type: 3}
+  - id: blindfold
+    sprite: {fileID: 21300000, guid: cda27ff80a83c4fc8bb1d46d6ea1e470, type: 3}
+  - id: borik
+    sprite: {fileID: 21300000, guid: 184bea5448d1a4561889cb5db8459e17, type: 3}
+  - id: dombra
+    sprite: {fileID: 21300000, guid: 3ede66e232853471685b41ee5f747d66, type: 3}
+  - id: etik
+    sprite: {fileID: 21300000, guid: 75dcf4bc0e08f49269e5bd94c39f9eed, type: 3}
+  - id: kamzol
+    sprite: {fileID: 21300000, guid: a8490aa49ef6648babb26ce40891202f, type: 3}
+  - id: kimeshek
+    sprite: {fileID: 21300000, guid: 74fa528126be84fd3af9471546bb6996, type: 3}
+  - id: lock
+    sprite: {fileID: 21300000, guid: 5047fef79fba04cccaa69fcf3382f013, type: 3}
+  - id: shapan
+    sprite: {fileID: 21300000, guid: 7c42c1fe44ab34de3aff85273075d10e, type: 3}
+  - id: swords
+    sprite: {fileID: 21300000, guid: 9759ff620351c4682921ae09ac52a116, type: 3}

@@ -1,37 +1,42 @@
+using ATTILA.Data;
 using ATTILA.Save;
+using UnityEngine;
 
 namespace ATTILA.Quest
 {
-    public enum FatherQuestObjective { TalkToFather, FindChildren, TalkToChildren, PlaySokyrTeke, ReturnToFather, Complete }
-
+    /// <summary>Runtime view over one role's chapter progress. All persistent state lives in <see cref="RoleProgress"/>.</summary>
     public sealed class QuestState
     {
-        public const string QuestId = "CH01_FATHER_01";
-        public FatherQuestObjective Objective { get; private set; }
-        public bool IsComplete => Objective == FatherQuestObjective.Complete;
-        public QuestState()
+        private readonly RoleProgress progress;
+        public ChapterDefinition Chapter { get; }
+        public int BeatCount => Chapter.beats.Count;
+        public int BeatIndex => progress.beatIndex;
+        public bool IsComplete => progress.completed || progress.beatIndex >= BeatCount;
+        public BeatDefinition Current => IsComplete ? null : Chapter.beats[progress.beatIndex];
+        public int Unity => progress.unity;
+        public int ProgressPercent => IsComplete ? 100 : Mathf.RoundToInt(100f * progress.beatIndex / Mathf.Max(1, BeatCount));
+
+        public QuestState(ChapterDefinition chapter)
         {
-            if (!System.Enum.TryParse(SaveService.Current.questObjective, out FatherQuestObjective loaded))
-                loaded = FatherQuestObjective.TalkToFather;
-            Objective = SaveService.Current.questCompleted ? FatherQuestObjective.Complete : loaded;
+            Chapter = chapter;
+            progress = SaveService.Progress(chapter.roleId);
         }
-        public void Set(FatherQuestObjective objective, string checkpoint)
+
+        public bool HasFlag(string flag) => !string.IsNullOrEmpty(flag) && progress.flags.Contains(flag);
+
+        public void SetFlag(string flag)
         {
-            Objective = objective;
-            SaveService.Current.questId = QuestId;
-            SaveService.Current.questObjective = objective.ToString();
-            SaveService.Current.questCompleted = IsComplete;
-            SaveService.Current.lastCheckpoint = checkpoint;
+            if (!string.IsNullOrEmpty(flag) && !progress.flags.Contains(flag)) progress.flags.Add(flag);
+        }
+
+        public void AddUnity(int amount) => progress.unity = Mathf.Clamp(progress.unity + amount, 0, 100);
+
+        public void Advance(string checkpoint)
+        {
+            progress.beatIndex++;
+            if (progress.beatIndex >= BeatCount) progress.completed = true;
+            if (!string.IsNullOrEmpty(checkpoint)) SaveService.Current.lastCheckpoint = checkpoint;
             SaveService.Save();
         }
-        public int ProgressPercent => Objective switch
-        {
-            FatherQuestObjective.TalkToFather => 0,
-            FatherQuestObjective.FindChildren => 25,
-            FatherQuestObjective.TalkToChildren or FatherQuestObjective.PlaySokyrTeke => 50,
-            FatherQuestObjective.ReturnToFather => 75,
-            FatherQuestObjective.Complete => 100,
-            _ => 0
-        };
     }
 }

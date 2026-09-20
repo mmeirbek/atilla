@@ -1,3 +1,4 @@
+using ATTILA.Audio;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -31,7 +32,7 @@ namespace ATTILA.UI
             var button = border.gameObject.AddComponent<Button>();
             button.targetGraphic = border;
             button.transition = Selectable.Transition.None;
-            button.onClick.AddListener(() => action?.Invoke());
+            button.onClick.AddListener(() => { AudioService.Play(Sfx.Click); action?.Invoke(); });
 
             var fill = UiFactory.Panel(border.transform, Burgundy);
             fill.name = "Fill";
@@ -39,12 +40,11 @@ namespace ATTILA.UI
             UiFactory.Stretch(fill.rectTransform, Vector2.zero, Vector2.one, new Vector2(5, 5), new Vector2(-5, -5));
 
             var text = UiFactory.Text(fill.transform, labelText, 29, TextAnchor.MiddleCenter, Cream);
-            text.fontStyle = FontStyle.Bold;
             text.raycastTarget = false;
             UiFactory.Stretch(text.rectTransform, Vector2.zero, Vector2.one, new Vector2(28, 0), new Vector2(-28, 0));
 
-            var left = CreateOrnament(fill.transform, "Left Ornament", TextAnchor.MiddleLeft);
-            var right = CreateOrnament(fill.transform, "Right Ornament", TextAnchor.MiddleRight);
+            var left = CreateOrnament(fill.transform, "Left Ornament", true);
+            var right = CreateOrnament(fill.transform, "Right Ornament", false);
 
             var visual = border.gameObject.AddComponent<MenuPixelButton>();
             visual.border = border;
@@ -56,19 +56,20 @@ namespace ATTILA.UI
             return button;
         }
 
-        public void OnPointerEnter(PointerEventData eventData) { hovering = true; ApplyState(); }
+        public void OnPointerEnter(PointerEventData eventData) { hovering = true; AudioService.Play(Sfx.Hover, .5f); ApplyState(); }
         public void OnPointerExit(PointerEventData eventData) { hovering = false; pressed = false; ApplyState(); }
         public void OnPointerDown(PointerEventData eventData) { pressed = true; ApplyState(); }
         public void OnPointerUp(PointerEventData eventData) { pressed = false; ApplyState(); }
         public void OnSelect(BaseEventData eventData) { selected = true; ApplyState(); }
         public void OnDeselect(BaseEventData eventData) { selected = false; ApplyState(); }
 
-        private static Graphic CreateOrnament(Transform parent, string name, TextAnchor anchor)
+        private static Graphic CreateOrnament(Transform parent, string name, bool leftSide)
         {
-            var ornament = UiFactory.Text(parent, "◆·◆", 13, anchor, Gold);
+            var ornament = UiFactory.Diamond(parent, 12f, Gold);
             ornament.name = name;
-            ornament.raycastTarget = false;
-            UiFactory.Stretch(ornament.rectTransform, Vector2.zero, Vector2.one, new Vector2(13, 0), new Vector2(-13, 0));
+            var rect = ornament.rectTransform;
+            rect.anchorMin = rect.anchorMax = new Vector2(leftSide ? 0f : 1f, .5f);
+            rect.anchoredPosition = new Vector2(leftSide ? 22f : -22f, 0f);
             return ornament;
         }
 

@@ -15,6 +15,8 @@ namespace ATTILA.Player
         public DirectionFrames[] directions = new DirectionFrames[8];
         [Min(1f)] public float framesPerSecond = 6f;
         [Min(.1f)] public float visualScale = 1f;
+        [Tooltip("Head-and-shoulders portrait for dialogue and HUD. Optional.")] public Sprite portrait;
+        public string displayName;
         public Sprite GetSprite(FacingDirection facing, bool moving, float time)
         {
             int index = (int)facing;

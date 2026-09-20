@@ -1,4 +1,5 @@
 using ATTILA.Data;
+using ATTILA.Environment;
 using ATTILA.Gameplay;
 using ATTILA.Player;
 using ATTILA.UI;
@@ -10,38 +11,94 @@ namespace ATTILA.NPC
     {
         [SerializeField] private string npcId;
         private NpcDefinition definition;
+        private PlayerVisual visual;
         public string Id => npcId;
         public string DisplayName => definition != null ? definition.displayName : npcId;
         public float InteractionRadius => definition != null ? definition.interactionRadius : 2f;
-        public void Configure(NpcDefinition value) { definition = value; npcId = value.id; }
-        public bool IsInRange(Transform player) => Vector3.Distance(new Vector3(player.position.x, 0f, player.position.z), new Vector3(transform.position.x, 0f, transform.position.z)) <= InteractionRadius;
-        public void Interact() => Stage2Game.Active?.InteractWith(this);
+
+        public void Configure(NpcDefinition value)
+        {
+            definition = value;
+            npcId = value.id;
+            visual = GetComponent<PlayerVisual>();
+        }
+
+        public bool IsInRange(Transform player) =>
+            Vector3.Distance(new Vector3(player.position.x, 0f, player.position.z), new Vector3(transform.position.x, 0f, transform.position.z)) <= InteractionRadius;
+
+        /// <summary>Turns towards the player when they come close, so conversations are face to face.</summary>
+        public void LookAt(Transform player)
+        {
+            if (visual == null) return;
+            var direction = player.position - transform.position;
+            direction.y = 0f;
+            visual.Face(direction);
+        }
+
+        public void Interact() => StoryDirector.Active?.InteractWith(this);
     }
 
     [RequireComponent(typeof(PlayerController))]
     public sealed class PlayerInteraction : MonoBehaviour
     {
+        private const float LookRadius = 5f;
         private NpcInteractable nearest;
-        private Stage2Ui ui;
-        private void Start() => ui = Stage2Game.Active?.Ui;
+        private GameUi ui;
+
         private void Update()
         {
-            if (Stage2Game.Active == null || Stage2Game.Active.IsModal) return;
-            nearest = FindNearest();
-            ui ??= Stage2Game.Active.Ui;
-            ui?.SetInteractionPrompt(nearest == null ? string.Empty : "[E] Сөйлесу");
-            if (nearest != null && Input.GetKeyDown(KeyCode.E)) nearest.Interact();
-        }
-        private NpcInteractable FindNearest()
-        {
-            NpcInteractable best = null;
+            var director = StoryDirector.Active;
+            if (director == null) return;
+            ui ??= director.Ui;
+            nearest = null;
             float bestDistance = float.MaxValue;
-            foreach (var npc in FindObjectsByType<NpcInteractable>(FindObjectsInactive.Exclude))
+            foreach (var npc in FindObjectsByType<NpcInteractable>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
             {
                 float distance = Vector3.Distance(transform.position, npc.transform.position);
-                if (distance <= npc.InteractionRadius && distance < bestDistance) { best = npc; bestDistance = distance; }
+                if (distance <= LookRadius) npc.LookAt(transform);
+                if (distance <= npc.InteractionRadius && distance < bestDistance) { nearest = npc; bestDistance = distance; }
             }
-            return best;
+            if (director.IsModal) { ui?.SetPrompt(string.Empty); return; }
+            ui?.SetPrompt(nearest == null ? string.Empty : $"E  ·  {nearest.DisplayName}");
+            if (nearest != null && Input.GetKeyDown(KeyCode.E)) nearest.Interact();
+        }
+    }
+
+    /// <summary>Floating marker over the NPC the current beat is waiting for.</summary>
+    public sealed class QuestMarker : MonoBehaviour
+    {
+        private SpriteRenderer marker;
+        private Transform target;
+        private string targetId;
+
+        private void Start()
+        {
+            var art = MvpArtSet.Instance;
+            var go = new GameObject("Quest marker");
+            go.transform.SetParent(transform, false);
+            marker = go.AddComponent<SpriteRenderer>();
+            marker.sprite = art != null ? art.marker : null;
+            marker.sortingOrder = 5;
+            marker.enabled = false;
+        }
+
+        private void LateUpdate()
+        {
+            var director = StoryDirector.Active;
+            string wanted = director != null ? director.TargetNpcId : null;
+            if (string.IsNullOrEmpty(wanted)) { marker.enabled = false; targetId = null; return; }
+            if (wanted != targetId || target == null)
+            {
+                targetId = wanted;
+                target = null;
+                foreach (var npc in FindObjectsByType<NpcInteractable>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+                    if (npc.Id == wanted) target = npc.transform;
+            }
+            if (target == null) { marker.enabled = false; return; }
+            marker.enabled = !director.IsModal;
+            marker.transform.position = target.position + new Vector3(0f, 2.5f + Mathf.Sin(Time.time * 3f) * .12f, 0f);
+            var camera = Camera.main;
+            if (camera != null) marker.transform.rotation = camera.transform.rotation;
         }
     }
 }

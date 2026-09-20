@@ -39,7 +39,6 @@ namespace ATTILA.UI
         public static void Header(Transform root, string title, System.Action back)
         {
             var heading = UiFactory.Text(root, title, 48, TextAnchor.MiddleCenter, Gold);
-            heading.fontStyle = FontStyle.Bold;
             UiFactory.SetRect(heading.rectTransform, new Vector2(.5f, .88f), new Vector2(980, 78), Vector2.zero);
             if (back == null) return;
             var button = MenuPixelButton.Create(root, "АРТҚА", back);
@@ -65,7 +64,6 @@ namespace ATTILA.UI
             button.transition = Selectable.Transition.ColorTint;
             button.onClick.AddListener(() => click?.Invoke());
             var titleText = UiFactory.Text(panel.transform, title, 28, TextAnchor.MiddleCenter, Cream);
-            titleText.fontStyle = FontStyle.Bold;
             UiFactory.SetRect(titleText.rectTransform, new Vector2(.5f, .20f), new Vector2(size.x - 26, 42), Vector2.zero);
             var sub = UiFactory.Text(panel.transform, subtitle, 18, TextAnchor.MiddleCenter, Parchment);
             UiFactory.SetRect(sub.rectTransform, new Vector2(.5f, .11f), new Vector2(size.x - 30, 34), Vector2.zero);

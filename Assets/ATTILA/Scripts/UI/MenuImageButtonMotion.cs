@@ -1,3 +1,4 @@
+using ATTILA.Audio;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -13,9 +14,9 @@ namespace ATTILA.UI
         private Vector3 targetScale = Vector3.one;
 
         private void Awake() => image = GetComponent<Image>();
-        public void OnPointerEnter(PointerEventData eventData) { hovering = true; Refresh(); }
+        public void OnPointerEnter(PointerEventData eventData) { hovering = true; AudioService.Play(Sfx.Hover, .5f); Refresh(); }
         public void OnPointerExit(PointerEventData eventData) { hovering = false; pressed = false; Refresh(); }
-        public void OnPointerDown(PointerEventData eventData) { pressed = true; Refresh(); }
+        public void OnPointerDown(PointerEventData eventData) { pressed = true; AudioService.Play(Sfx.Click); Refresh(); }
         public void OnPointerUp(PointerEventData eventData) { pressed = false; Refresh(); }
         private void Refresh()
         {

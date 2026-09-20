@@ -22,10 +22,21 @@ namespace ATTILA.Player
             spriteRenderer.receiveShadows = false;
             spriteRenderer.spriteSortPoint = SpriteSortPoint.Pivot;
         }
+        /// <summary>Swaps the directional sprites, e.g. to give each role or NPC its own look.</summary>
+        public void SetSpriteSet(DirectionalSpriteSet value)
+        {
+            if (value != null) spriteSet = value;
+        }
         public void SetMovement(Vector3 direction, bool isMoving)
         {
             if (!isMoving) { IsMoving = false; animationTime = 0f; return; }
             IsMoving = true;
+            Face(direction);
+        }
+
+        /// <summary>Turns to face a direction without starting the walk cycle.</summary>
+        public void Face(Vector3 direction)
+        {
             if (direction.sqrMagnitude < .001f) return;
             float angle = Mathf.Repeat(Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg + 22.5f, 360f);
             var next = (FacingDirection)Mathf.FloorToInt(angle / 45f);

@@ -1,39 +1,62 @@
+using ATTILA.Audio;
+using ATTILA.Save;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace ATTILA.UI
 {
+    /// <summary>Working volume sliders and a progress reset; every value lives in the save file.</summary>
     public sealed class SettingsScreen : MonoBehaviour
     {
+        private Text musicValue, sfxValue, resetNote;
+
         public static void Show(Transform root)
         {
-            var host = new GameObject("Settings Screen");
+            var host = new GameObject("Settings Screen", typeof(RectTransform));
             host.transform.SetParent(root, false);
+            UiFactory.Stretch((RectTransform)host.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
             host.AddComponent<SettingsScreen>().Build();
         }
 
         private void Build()
         {
-            MenuUiKit.Background(transform);
-            MenuUiKit.Header(transform, "БАПТАУЛАР", () => Destroy(gameObject));
-            var panel = MenuUiKit.Panel(transform, new Vector2(.5f, .50f), new Vector2(760, 510));
-            CreateSetting(panel.transform, "ДЫБЫС", "100%", .70f);
-            CreateSetting(panel.transform, "МУЗЫКА", "100%", .49f);
-            CreateSetting(panel.transform, "ТОЛЫҚ ЭКРАН", "ҚОСУЛЫ", .28f);
-            var note = UiFactory.Text(panel.transform, "Уақытша presentation controls", 16, TextAnchor.MiddleCenter, MenuUiKit.Parchment);
-            UiFactory.SetRect(note.rectTransform, new Vector2(.5f, .10f), new Vector2(520, 30), Vector2.zero);
+            MenuUiKit.Background(transform, .82f);
+            MenuUiKit.Header(transform, "БАПТАУЛАР", () => { SaveService.Save(); Destroy(gameObject); });
+            var panel = GameUiKit.InkPanel(transform, new Vector2(.5f, .5f), new Vector2(1000, 620), new Vector2(0, -10));
+            musicValue = Slider(panel.Content, "МУЗЫКА", .74f, SaveService.Current.musicVolume, value =>
+            {
+                AudioService.SetMusicVolume(value);
+                musicValue.text = Percent(value);
+            });
+            sfxValue = Slider(panel.Content, "ДЫБЫС", .54f, SaveService.Current.sfxVolume, value =>
+            {
+                AudioService.SetSfxVolume(value);
+                sfxValue.text = Percent(value);
+            });
+            var reset = MenuPixelButton.Create(panel.Content, "ПРОГРЕСТІ ТАЗАЛАУ", () =>
+            {
+                SaveService.ResetForTests();
+                AudioService.SetMusicVolume(SaveService.Current.musicVolume);
+                resetNote.text = "Прогресс тазартылды. Барлық тарау қайта басталады.";
+            });
+            UiFactory.SetRect(reset.GetComponent<RectTransform>(), new Vector2(.5f, .27f), new Vector2(520, 80), Vector2.zero);
+            resetNote = GameUiKit.Label(panel.Content, "Дыбыс деңгейі сақтау файлында сақталады.", 20, GameUiKit.Muted, TextAnchor.MiddleCenter, 60, 520, 880, 34);
         }
 
-        private static void CreateSetting(Transform root, string title, string state, float y)
+        private Text Slider(Transform parent, string label, float y, float value, System.Action<float> changed)
         {
-            var text = UiFactory.Text(root, title, 23, TextAnchor.MiddleLeft, MenuUiKit.Cream);
-            text.fontStyle = FontStyle.Bold;
-            UiFactory.SetRect(text.rectTransform, new Vector2(.16f, y), new Vector2(230, 40), Vector2.zero);
-            var bar = MenuUiKit.Panel(root, new Vector2(.58f, y), new Vector2(310, 28), true);
-            var marker = UiFactory.Panel(bar.transform, MenuUiKit.Gold);
-            UiFactory.SetRect(marker.rectTransform, new Vector2(.78f, .5f), new Vector2(18, 18), Vector2.zero);
-            var value = UiFactory.Text(root, state, 18, TextAnchor.MiddleCenter, MenuUiKit.Gold);
-            UiFactory.SetRect(value.rectTransform, new Vector2(.84f, y), new Vector2(135, 35), Vector2.zero);
+            var title = GameUiKit.Label(parent, label, 28, MenuUiKit.Cream, TextAnchor.MiddleLeft, 0, 0, 300, 40);
+            title.rectTransform.anchorMin = title.rectTransform.anchorMax = new Vector2(.18f, y);
+            title.rectTransform.anchoredPosition = Vector2.zero;
+            var readout = GameUiKit.Label(parent, Percent(value), 26, MenuUiKit.Gold, TextAnchor.MiddleRight, 0, 0, 160, 40);
+            readout.rectTransform.anchorMin = readout.rectTransform.anchorMax = new Vector2(.9f, y);
+            readout.rectTransform.anchoredPosition = Vector2.zero;
+            GameUiKit.Slider(parent, new Vector2(.58f, y), new Vector2(500, 34), value, changed);
+            return readout;
         }
+
+        private static string Percent(float value) => Mathf.RoundToInt(value * 100f) + "%";
+
+        private void OnDestroy() => SaveService.Save();
     }
 }

@@ -1,3 +1,4 @@
+using ATTILA.Audio;
 using ATTILA.Core;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,6 +11,7 @@ namespace ATTILA.UI
 
         private void Start()
         {
+            AudioService.PlayMusic(MusicTrack.Menu);
             var canvas = MenuUiKit.Canvas("Main Menu Canvas");
             MenuUiKit.Background(canvas.transform, .10f);
             var visuals = Resources.Load<MenuVisualDefinition>("UI/MainMenuVisuals");

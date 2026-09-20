@@ -9,9 +9,18 @@ namespace ATTILA.UI
         public static readonly Color Primary = new(0.545f, 0.18f, 0.141f);
         public static readonly Color Background = new(0.969f, 0.902f, 0.82f);
         public static readonly Color Accent = new(0.906f, 0.435f, 0.318f);
+
+        // Press Start 2P is roughly twice as wide per em as the Arial the layouts were first drawn for.
+        // Callers keep passing the original design sizes; they are scaled and snapped to the font's 8 px grid.
+        private const float PixelFontScale = .7f;
+        private const int PixelGrid = 8;
+        private const int MinimumPixelSize = 16;
+        private static Font pixelFont;
+        private static Font PixelFont => pixelFont != null ? pixelFont : pixelFont = Resources.Load<Font>("UI/PressStart2P-Regular");
+
         public static Canvas CreateCanvas(string name = "Canvas")
         {
-            if (Object.FindFirstObjectByType<EventSystem>() == null)
+            if (Object.FindAnyObjectByType<EventSystem>() == null)
             {
                 var eventSystem = new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
                 Object.DontDestroyOnLoad(eventSystem);
@@ -24,12 +33,26 @@ namespace ATTILA.UI
         public static Text Text(Transform parent, string value, int size, TextAnchor alignment, Color color)
         {
             var go = new GameObject("Text", typeof(Text)); go.transform.SetParent(parent, false);
-            var text = go.GetComponent<Text>(); text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"); text.text = value; text.fontSize = size; text.alignment = alignment; text.color = color; text.horizontalOverflow = HorizontalWrapMode.Wrap; text.verticalOverflow = VerticalWrapMode.Overflow;
+            var text = go.GetComponent<Text>();
+            var font = PixelFont;
+            text.font = font != null ? font : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            text.fontSize = font != null ? SnapToPixelGrid(size) : size;
+            text.text = value; text.alignment = alignment; text.color = color; text.horizontalOverflow = HorizontalWrapMode.Wrap; text.verticalOverflow = VerticalWrapMode.Overflow;
             return text;
         }
         public static Image Panel(Transform parent, Color color)
         {
             var go = new GameObject("Panel", typeof(Image)); go.transform.SetParent(parent, false); var image = go.GetComponent<Image>(); image.color = color; return image;
+        }
+        /// <summary>Square rotated 45 degrees; stands in for the diamond glyph the pixel font does not contain.</summary>
+        public static Image Diamond(Transform parent, float size, Color color)
+        {
+            var image = Panel(parent, color);
+            image.name = "Diamond";
+            image.raycastTarget = false;
+            image.rectTransform.sizeDelta = new Vector2(size, size);
+            image.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 45f);
+            return image;
         }
         public static Button Button(Transform parent, string label, System.Action click, bool enabled = true)
         {
@@ -42,5 +65,8 @@ namespace ATTILA.UI
         { rect.anchorMin = min; rect.anchorMax = max; rect.offsetMin = offsetMin; rect.offsetMax = offsetMax; }
         public static void SetRect(RectTransform rect, Vector2 anchor, Vector2 size, Vector2 position)
         { rect.anchorMin = rect.anchorMax = anchor; rect.sizeDelta = size; rect.anchoredPosition = position; }
+
+        private static int SnapToPixelGrid(int designSize) =>
+            Mathf.Max(MinimumPixelSize, Mathf.RoundToInt(designSize * PixelFontScale / PixelGrid) * PixelGrid);
     }
 }
