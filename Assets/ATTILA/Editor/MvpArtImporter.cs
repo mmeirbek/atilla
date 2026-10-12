@@ -114,6 +114,8 @@ namespace ATTILA.Editor
             set.bannerDark = SpriteAt("Props/banner_dark.png");
             set.horseBay = new[] { SpriteAt("Props/horse_bay_0.png"), SpriteAt("Props/horse_bay_1.png") };
             set.horseGrey = new[] { SpriteAt("Props/horse_grey_0.png"), SpriteAt("Props/horse_grey_1.png") };
+            set.horseBayGallop = Enumerable.Range(0, 4).Select(i => SpriteAt($"Props/horse_bay_gallop_{i}.png")).ToArray();
+            set.horseGreyGallop = Enumerable.Range(0, 4).Select(i => SpriteAt($"Props/horse_grey_gallop_{i}.png")).ToArray();
             set.campfire = Enumerable.Range(0, 4).Select(i => SpriteAt($"Props/campfire_{i}.png")).ToArray();
             set.glow = SpriteAt("Props/glow.png");
             set.shadow = SpriteAt("Props/shadow.png");

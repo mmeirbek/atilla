@@ -46,6 +46,9 @@ def main():
     for frame in range(2):
         save(env.horse((140, 84, 48), (50, 34, 26), (150, 30, 34), frame), "Props", f"horse_bay_{frame}.png")
         save(env.horse((176, 170, 160), (90, 86, 84), (40, 64, 124), frame), "Props", f"horse_grey_{frame}.png")
+    for frame in range(4):
+        save(env.horse_gallop((140, 84, 48), (50, 34, 26), (150, 30, 34), frame), "Props", f"horse_bay_gallop_{frame}.png")
+        save(env.horse_gallop((176, 170, 160), (90, 86, 84), (40, 64, 124), frame), "Props", f"horse_grey_gallop_{frame}.png")
     for i, frame in enumerate(env.campfire_frames()):
         save(frame, "Props", f"campfire_{i}.png")
     save(env.glow(), "Props", "glow.png")

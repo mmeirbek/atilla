@@ -8,7 +8,7 @@ import random
 
 from PIL import Image, ImageDraw, ImageFont
 
-from characters import Canvas, outlined, shade, mix, GOLD, GOLD_LIGHT, GOLD_DARK, WOOD, OUTLINE, WHITE
+from characters import Canvas, outlined, render, shade, mix, GOLD, GOLD_LIGHT, GOLD_DARK, WOOD, OUTLINE, WHITE
 
 BAYER = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]]
 INK = (70, 42, 26)
@@ -207,6 +207,61 @@ def horse(coat, mane, saddle, frame):
         c.px(x, 23, GOLD_LIGHT)
     c.rect(28, 13, 34, 15, (90, 56, 34))
     return outlined(c.image)
+
+
+# Gallop poses, four frames: gathered, push-off, flight, landing. Each leg is (thigh angle, cannon angle) in
+# degrees from straight down, positive pointing forward (to the right, where the horse faces).
+GALLOP = [
+    dict(bob=1, head=1, tail=-20, hind_near=(28, -8), hind_far=(16, -22), front_near=(-22, -70), front_far=(-8, -40)),
+    dict(bob=0, head=0, tail=-35, hind_near=(-18, -40), hind_far=(-6, -20), front_near=(30, 60), front_far=(16, 10)),
+    dict(bob=-2, head=-1, tail=-55, hind_near=(-40, -60), hind_far=(-30, -48), front_near=(48, 75), front_far=(38, 62)),
+    dict(bob=0, head=1, tail=-30, hind_near=(6, -30), hind_far=(-12, -36), front_near=(-4, 4), front_far=(14, 20)),
+]
+
+
+def horse_gallop(coat, mane, saddle, frame):
+    """A horse at full gallop, same 64x48 frame and feet line as the standing horse so the two swap cleanly."""
+    pose = GALLOP[frame % len(GALLOP)]
+    c = Canvas(64, 48)
+    bob, head = pose["bob"], pose["head"]
+    dark = shade(coat, .72)
+    hoof = (40, 30, 26)
+
+    def leg(x, y, angles, color, width):
+        thigh, cannon = (math.radians(a) for a in angles)
+        kx, ky = x + math.sin(thigh) * 8, y + math.cos(thigh) * 8
+        fx, fy = kx + math.sin(cannon) * 8, ky + math.cos(cannon) * 8
+        c.draw.line([(x, y), (kx, ky)], fill=color + (255,), width=width + 1)
+        c.draw.line([(kx, ky), (fx, fy)], fill=color + (255,), width=width)
+        c.rect(round(fx) - 1, round(fy) - 1, round(fx) + 1, round(fy), hoof)
+
+    # Far legs first, darker, so the near pair reads in front.
+    leg(21, 30 + bob, pose["hind_far"], shade(coat, .6), 3)
+    leg(44, 30 + bob, pose["front_far"], shade(coat, .6), 3)
+    tail = math.radians(pose["tail"])
+    tx, ty = 14 + math.sin(tail) * 12, 21 + bob + math.cos(tail) * 12
+    c.draw.line([(14, 21 + bob), (tx, ty)], fill=mane + (255,), width=4)
+    c.draw.line([(12, 22 + bob), (tx - 2, ty + 2)], fill=shade(mane, .8) + (255,), width=2)
+    c.ellipse(14, 17 + bob, 50, 34 + bob, coat)
+    c.rect(18, 28 + bob, 46, 32 + bob, dark)
+    leg(18, 30 + bob, pose["hind_near"], coat, 4)
+    leg(46, 29 + bob, pose["front_near"], coat, 4)
+    hy = bob + head
+    c.poly([(42, 22 + bob), (51, 9 + hy), (56, 9 + hy), (50, 25 + bob)], coat)
+    c.poly([(51, 8 + hy), (59, 11 + hy), (62, 16 + hy), (59, 18 + hy), (52, 15 + hy)], coat)
+    c.px(61, 15 + hy, hoof)
+    c.px(55, 11 + hy, (30, 22, 20))
+    c.rect(52, 6 + hy, 53, 8 + hy, coat)
+    # The mane streams back in the wind, longer in the flight frame.
+    stream = 3 + (2 if frame % 4 == 2 else 0)
+    c.poly([(42, 20 + bob), (49, 7 + hy), (51, 8 + hy), (46, 22 + bob), (42 - stream, 18 + bob)], mane)
+    c.rect(24, 15 + bob, 38, 20 + bob, saddle)
+    c.rect(24, 20 + bob, 38, 27 + bob, shade(saddle, .8))
+    c.rect(24, 26 + bob, 38, 27 + bob, GOLD)
+    for x in range(26, 38, 4):
+        c.px(x, 23 + bob, GOLD_LIGHT)
+    c.rect(28, 13 + bob, 34, 15 + bob, (90, 56, 34))
+    return render(c.image)
 
 
 def camel(frame):

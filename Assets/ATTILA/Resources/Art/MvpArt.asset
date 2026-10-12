@@ -26,6 +26,16 @@ MonoBehaviour:
   horseGrey:
   - {fileID: 21300000, guid: b835745ddf7a04eec804638976eb75e6, type: 3}
   - {fileID: 21300000, guid: 7dde907fb9af842459417f159add48c2, type: 3}
+  horseBayGallop:
+  - {fileID: 21300000, guid: c058942587954a80b74f234d1ef5a09b, type: 3}
+  - {fileID: 21300000, guid: b9f88285fa6e4ae5a2c830ca2645323b, type: 3}
+  - {fileID: 21300000, guid: 332471e1111f4dd684154d1261ecfa32, type: 3}
+  - {fileID: 21300000, guid: 37c161185f8e46b2b60dd4c1370ef787, type: 3}
+  horseGreyGallop:
+  - {fileID: 21300000, guid: bafd4e9e34af417fae9f55282d2b7080, type: 3}
+  - {fileID: 21300000, guid: 0d6991ff652f47a3883d36e77993bf43, type: 3}
+  - {fileID: 21300000, guid: f8bc42c0d37945f3933fb1316fd0b9cc, type: 3}
+  - {fileID: 21300000, guid: a310681bc8374aa399c3c5813e845c2e, type: 3}
   campfire:
   - {fileID: 21300000, guid: 53e80c22c9f904f84b6ea197211ed380, type: 3}
   - {fileID: 21300000, guid: edb1c516e5d864ade92fbd3e012d96fd, type: 3}

@@ -27,6 +27,9 @@ namespace ATTILA.Gameplay
         private Action won, lost;
         private GameObject mount, rival;
         private SpriteRenderer mountRenderer, rivalRenderer;
+        private Sprite standing;
+        private Sprite[] gallop, rivalGallop;
+        private const float GallopFps = 12f;
         private PlayerVisual rivalVisual;
         private GameObject[] flags;
         private GameObject[] rings;
@@ -63,11 +66,10 @@ namespace ATTILA.Gameplay
             Teleport(player.transform, start);
             lastPosition = start;
             mount = WorldArt.Prop(art != null && art.horseBay.Length > 0 ? art.horseBay[0] : null, start, 2.2f);
-            if (mount != null)
-            {
-                mount.AddComponent<SpriteFlipbook>().Configure(art.horseBay, 9f);
-                mountRenderer = mount.GetComponent<SpriteRenderer>();
-            }
+            if (mount != null) mountRenderer = mount.GetComponent<SpriteRenderer>();
+            standing = art != null && art.horseBay.Length > 0 ? art.horseBay[0] : null;
+            gallop = art != null && art.horseBayGallop != null && art.horseBayGallop.Length > 0 ? art.horseBayGallop : art?.horseBay;
+            rivalGallop = art != null && art.horseGreyGallop != null && art.horseGreyGallop.Length > 0 ? art.horseGreyGallop : art?.horseGrey;
             visual.SetLift(.85f);
             player.SetSpeedMultiplier(RiderSpeed);
             player.SetInputEnabled(false);
@@ -78,7 +80,6 @@ namespace ATTILA.Gameplay
             if (rivalHorse != null)
             {
                 rivalHorse.transform.SetParent(rival.transform, true);
-                rivalHorse.AddComponent<SpriteFlipbook>().Configure(art.horseGrey, 9f);
                 rivalRenderer = rivalHorse.GetComponent<SpriteRenderer>();
             }
             rivalVisual = new GameObject("Rival").AddComponent<PlayerVisual>();
@@ -124,6 +125,10 @@ namespace ATTILA.Gameplay
             float bob = galloping ? Mathf.Abs(Mathf.Sin(time * 14f)) * .18f : 0f;
             if (mount != null) mount.transform.position = new Vector3(position.x, bob, position.z);
             if (mountRenderer != null && Mathf.Abs(moved.x) > .005f) mountRenderer.flipX = moved.x < 0f;
+            if (mountRenderer != null && gallop != null && gallop.Length > 0)
+                mountRenderer.sprite = galloping ? gallop[Mathf.FloorToInt(time * GallopFps) % gallop.Length] : standing ?? gallop[0];
+            if (rivalRenderer != null && rivalGallop != null && rivalGallop.Length > 0)
+                rivalRenderer.sprite = rivalGallop[racing ? Mathf.FloorToInt(time * GallopFps + 2) % rivalGallop.Length : 0];
             visual.SetLift(.85f + bob);
             AnimateRings();
 

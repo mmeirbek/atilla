@@ -31,6 +31,8 @@ namespace ATTILA.Environment
         public Sprite bannerDark;
         public Sprite[] horseBay;
         public Sprite[] horseGrey;
+        [Tooltip("Four gallop frames for the bәйге; the two-frame sets above stay for standing horses.")] public Sprite[] horseBayGallop;
+        public Sprite[] horseGreyGallop;
         public Sprite[] campfire;
         public Sprite glow;
         public Sprite shadow;
