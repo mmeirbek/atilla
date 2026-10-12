@@ -13,7 +13,12 @@ namespace ATTILA.Player
         private CharacterController controller;
         private PlayerVisual visual;
         private Vector3 velocity;
-        private void Awake() { controller = GetComponent<CharacterController>(); visual = GetComponent<PlayerVisual>(); }
+        private void Awake()
+        {
+            controller = GetComponent<CharacterController>();
+            visual = GetComponent<PlayerVisual>();
+            if (visual != null) visual.PlaySteps = true;
+        }
         private void Update()
         {
             if (!inputEnabled) return;

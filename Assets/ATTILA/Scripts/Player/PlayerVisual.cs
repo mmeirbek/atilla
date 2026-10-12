@@ -13,6 +13,9 @@ namespace ATTILA.Player
         private float idleTime;
         private float seed;
         private float lean;
+        private int lastStep = -1;
+        /// <summary>Only the player's feet are heard; a crowd of footsteps would be noise.</summary>
+        public bool PlaySteps { get; set; }
         public FacingDirection Facing { get; private set; } = FacingDirection.S;
         public bool IsMoving { get; private set; }
         private void Awake()
@@ -72,7 +75,12 @@ namespace ATTILA.Player
                      : Facing is FacingDirection.W or FacingDirection.NW or FacingDirection.SW ? -1 : 0;
             if (IsMoving)
             {
-                float phase = animationTime * spriteSet.StepRate * Mathf.PI * .5f;
+                // Highest in the middle of the passing frame, lowest when a foot lands.
+                float phase = (animationTime * spriteSet.StepRate - .5f) * Mathf.PI * .5f;
+                int step = Mathf.FloorToInt(animationTime * spriteSet.StepRate);
+                if (PlaySteps && lift <= 0f && step != lastStep && step % 2 == 0)
+                    ATTILA.Audio.AudioService.Play(ATTILA.Audio.Sfx.Step, .3f, Random.Range(.85f, 1.15f));
+                lastStep = step;
                 float beat = Mathf.Abs(Mathf.Sin(phase));
                 bob = beat * .07f;
                 stretch = 1f + beat * .025f;
@@ -80,6 +88,7 @@ namespace ATTILA.Player
             }
             else
             {
+                lastStep = -1;
                 float breath = Mathf.Sin(idleTime * 2.1f + seed);
                 stretch = 1f + breath * .012f;
                 squash = 1f - breath * .006f;
