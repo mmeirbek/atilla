@@ -16,3 +16,5 @@ BatchBuild.log
 # Build output
 /[Bb]uilds/
 /Data/
+/[Aa]ssets/_Recovery/
+/[Aa]ssets/_Recovery.meta
