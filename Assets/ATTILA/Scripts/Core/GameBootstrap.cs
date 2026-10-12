@@ -1,3 +1,4 @@
+using ATTILA.Audio;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -12,8 +13,13 @@ namespace ATTILA.Core
             if (instance != null) { Destroy(gameObject); return; }
             instance = this;
             DontDestroyOnLoad(gameObject);
+            gameObject.AddComponent<PresenterKeys>();
         }
 
-        private void Start() => SceneLoader.Load(SceneId.MainMenu);
+        private void Start()
+        {
+            AudioService.PlayMusic(MusicTrack.Menu);
+            SceneLoader.Load(SceneId.MainMenu);
+        }
     }
 }

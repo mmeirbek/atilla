@@ -65,7 +65,17 @@ namespace ATTILA.Gameplay
             duel = gameObject.AddComponent<DuelMinigame>();
             AudioService.PlayMusic(MusicTrack.Aul);
             RefreshUi();
-            if (Quest.IsComplete) ShowFinale();
+            if (Quest.IsComplete) { ShowFinale(); return; }
+            // Every visit opens on the chapter's title card; the controls line only shows before the first step.
+            IsModal = true;
+            player.SetInputEnabled(false);
+            Ui.SetHudVisible(false);
+            Ui.ShowChapterIntro(Hero, Chapter, Quest.BeatIndex == 0, () =>
+            {
+                IsModal = false;
+                player.SetInputEnabled(true);
+                Ui.SetHudVisible(true);
+            });
         }
 
         public NpcDefinition Npc(string id) => Content.Npc(id);
@@ -237,7 +247,7 @@ namespace ATTILA.Gameplay
             var route = new MapDefinition
             {
                 title = "ЖОЛҒА ШЫҒУ",
-                goal = AulPrototypeBuilder.LocationName(destination) + " бару",
+                goal = AulPrototypeBuilder.LocationTo(destination) + " бару",
                 startLabel = AulPrototypeBuilder.LocationName(builder.Current),
                 endLabel = AulPrototypeBuilder.LocationName(destination),
                 route = new[]
@@ -247,12 +257,15 @@ namespace ATTILA.Gameplay
                     AulPrototypeBuilder.MapPoint(destination)
                 }
             };
-            BeginOverlay(() => MapScreen.Show(Ui.OverlayRoot, route, () => FinishOverlay(() =>
+            BeginOverlay(() => MapScreen.Show(Ui.OverlayRoot, route, () =>
             {
-                builder.Travel(destination);
-                Ui.ShowToast(AulPrototypeBuilder.LocationName(destination), 2.5f);
-                RefreshUi();
-            })));
+                // Hold the overlay state through a dip to dark, so the old place is never seen being torn down.
+                Ui.FadeThrough(() =>
+                {
+                    builder.Travel(destination);
+                    RefreshUi();
+                }, () => FinishOverlay(() => Ui.ShowToast(AulPrototypeBuilder.LocationName(destination), 2.5f)));
+            }));
         }
 
         public void RefreshUi()
@@ -278,6 +291,24 @@ namespace ATTILA.Gameplay
                 () => SceneLoader.Load(SceneId.MainMenu),
                 () => SceneLoader.Load(SceneId.CharacterSelect),
                 () => EncyclopediaScreen.Show(Ui.OverlayRoot));
+        }
+
+        /// <summary>
+        /// Presenter key: ends the title card, or moves the story on by one step (riding to the next place when the
+        /// step waits elsewhere). Ignored while a conversation, mini-game or world job is running.
+        /// </summary>
+        public void PresenterSkip()
+        {
+            if (Ui.SkipIntro()) return;
+            if (IsModal || Ui.DialogueActive || Quest.IsComplete) return;
+            if (NeedsTravel)
+            {
+                var destination = Quest.Current.location;
+                IsModal = true;
+                Ui.FadeThrough(() => { AulPrototypeBuilder.Active.Travel(destination); RefreshUi(); }, () => IsModal = false);
+                return;
+            }
+            CompleteBeat(Quest.Current);
         }
 
         /// <summary>Restarts the current chapter from its first beat; XP and unlocked entries are kept.</summary>

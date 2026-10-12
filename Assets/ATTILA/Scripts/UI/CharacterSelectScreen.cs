@@ -130,7 +130,7 @@ namespace ATTILA.UI
 
                 string label = progress.completed ? "ҚАЙТА ОЙНАУ" : progress.beatIndex > 0 ? "ЖАЛҒАСТЫРУ" : "БАСТАУ";
                 var play = MenuPixelButton.Create(card.transform, label, () => screen.Select(index));
-                UiFactory.SetRect(play.GetComponent<RectTransform>(), new Vector2(.5f, 0f), new Vector2(430, 84), new Vector2(0, 56));
+                UiFactory.SetRect(play.GetComponent<RectTransform>(), new Vector2(.5f, 0f), new Vector2(456, 96), new Vector2(0, 52));
                 action = play.gameObject;
 
                 var trigger = card.gameObject.AddComponent<EventTrigger>();

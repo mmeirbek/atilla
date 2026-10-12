@@ -78,27 +78,31 @@ CHILD = dict(feet=77, boot=72, hem=66, belt=60, top=51, chin=50, eye=44, head=37
 
 
 class Canvas:
-    def __init__(self, width, height):
+    """Drawing surface; <dy> shifts everything down, e.g. so a tall hat fits inside a portrait."""
+
+    def __init__(self, width, height, dy=0):
         self.image = Image.new("RGBA", (width, height), (0, 0, 0, 0))
         self.draw = ImageDraw.Draw(self.image)
         self.width, self.height = width, height
+        self.dy = dy
 
     def px(self, x, y, color):
+        y += self.dy
         if 0 <= x < self.width and 0 <= y < self.height:
             self.image.putpixel((int(x), int(y)), tuple(color[:3]) + (255,))
 
     def rect(self, x0, y0, x1, y1, color):
         if x1 >= x0 and y1 >= y0:
-            self.draw.rectangle([x0, y0, x1, y1], fill=tuple(color[:3]) + (255,))
+            self.draw.rectangle([x0, y0 + self.dy, x1, y1 + self.dy], fill=tuple(color[:3]) + (255,))
 
     def poly(self, points, color):
-        self.draw.polygon([(x, y) for x, y in points], fill=tuple(color[:3]) + (255,))
+        self.draw.polygon([(x, y + self.dy) for x, y in points], fill=tuple(color[:3]) + (255,))
 
     def ellipse(self, x0, y0, x1, y1, color):
-        self.draw.ellipse([x0, y0, x1, y1], fill=tuple(color[:3]) + (255,))
+        self.draw.ellipse([x0, y0 + self.dy, x1, y1 + self.dy], fill=tuple(color[:3]) + (255,))
 
     def line(self, x0, y0, x1, y1, color):
-        self.draw.line([x0, y0, x1, y1], fill=tuple(color[:3]) + (255,))
+        self.draw.line([x0, y0 + self.dy, x1, y1 + self.dy], fill=tuple(color[:3]) + (255,))
 
 
 def outlined(image, color=OUTLINE):
@@ -116,6 +120,63 @@ def outlined(image, color=OUTLINE):
                     target[x, y] = color + (255,)
                     break
     return result
+
+
+def hue_shift(color, amount):
+    """Pixel-art shading: shadows lean cool and violet, highlights lean warm, instead of plain darker or lighter."""
+    if amount < 0:
+        k = min(1.0, -amount)
+        return mix(shade(color, 1 - k * .5), (46, 32, 78), k * .3)
+    k = min(1.0, amount)
+    return mix(color, (255, 238, 196), k * .55)
+
+
+def render(image, outline_strength=.42):
+    """Light pass for every sprite: light from the upper left, each shape shaded like a cylinder, a warm rim on
+    top edges, slightly darker toward the ground, and an outline tinted by the colour it surrounds."""
+    width, height = image.size
+    source = image.load()
+    result = image.copy()
+    target = result.load()
+    for y in range(height):
+        x = 0
+        while x < width:
+            if not source[x, y][3]:
+                x += 1
+                continue
+            start = x
+            while x < width and source[x, y][3]:
+                x += 1
+            end = x - 1
+            run = end - start + 1
+            for i in range(start, end + 1):
+                color = source[i, y][:3]
+                amount = 0.0
+                if run >= 4:
+                    t = (i - start) / (run - 1)
+                    if t < .25:
+                        amount += .3 * (1 - t / .25) + .08
+                    elif t > .62:
+                        amount -= .1 + .34 * (t - .62) / .38
+                if y > 0 and not source[i, y - 1][3]:
+                    amount += .4
+                amount -= .16 * max(0.0, (y - height * .5) / (height * .5))
+                if amount:
+                    color = hue_shift(color, amount)
+                target[i, y] = tuple(int(v) for v in color) + (255,)
+    lit = result.copy()
+    out = lit.load()
+    shaded = result.load()
+    for y in range(height):
+        for x in range(width):
+            if source[x, y][3]:
+                continue
+            neighbours = [shaded[nx, ny][:3] for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1))
+                          if 0 <= nx < width and 0 <= ny < height and source[nx, ny][3]]
+            if neighbours:
+                avg = tuple(sum(c[i] for c in neighbours) // len(neighbours) for i in range(3))
+                out[x, y] = mix(shade(avg, outline_strength), OUTLINE, .55) + (255,)
+    return lit
 
 
 # ---------------------------------------------------------------- world sprites
@@ -356,7 +417,7 @@ def draw_frontal(c, look, L, view, step):
     if back and look.get("weapon"):
         draw_weapon(c, look, L, spear_x, False)
     if turned:
-        draw_arm(c, look, L, cx + sh - 1, 1, -step, narrow=True, dark=True)
+        draw_arm(c, look, L, cx + sh - 1, 1, -step * 2, narrow=True, dark=True)
     draw_boots(c, look, L, cx + (1 if turned else 0), step, dress)
     hem_y = hem + (8 if dress else 0)
     hem_w = hw + (1 if dress else 0)
@@ -399,9 +460,9 @@ def draw_frontal(c, look, L, view, step):
         c.px(ox, belt, GOLD_LIGHT)
     if tunic:
         c.rect(cx - hw + sway, hem - 1, cx + hw + sway, hem, look["trim"])
-    draw_arm(c, look, L, cx - sh + 1, -1, step)
+    draw_arm(c, look, L, cx - sh + 1, -1, step * 2)
     if not turned:
-        draw_arm(c, look, L, cx + sh - 1, 1, -step, dark=True)
+        draw_arm(c, look, L, cx + sh - 1, 1, -step * 2, dark=True)
     collar = look.get("collar")
     hx = cx + (1 if view == "SE" else -1 if view == "NE" else 0)
     if collar == "fur":
@@ -570,7 +631,7 @@ def sprite(look_id, direction, step):
         draw_profile(c, look, L, step)
     else:
         draw_frontal(c, look, L, base, step)
-    image = outlined(c.image)
+    image = render(c.image)
     if direction in MIRROR:
         image = image.transpose(Image.FLIP_LEFT_RIGHT)
     return image
@@ -580,7 +641,7 @@ def sprite(look_id, direction, step):
 
 def bust(look_id):
     look = LOOKS[look_id]
-    c = Canvas(64, 64)
+    c = Canvas(64, 64, dy=5)
     cx = 32
     child = look.get("child")
     fw = 10 if not child else 11
@@ -755,4 +816,4 @@ def bust(look_id):
     elif look.get("weapon") == "staff":
         c.rect(6, 6, 7, 64, WOOD)
         c.rect(6, 4, 10, 5, WOOD)
-    return outlined(c.image)
+    return render(c.image, .5)

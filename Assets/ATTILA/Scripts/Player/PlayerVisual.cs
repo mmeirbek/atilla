@@ -10,6 +10,9 @@ namespace ATTILA.Player
         private Camera viewCamera;
         private float animationTime;
         private float lift;
+        private float idleTime;
+        private float seed;
+        private float lean;
         public FacingDirection Facing { get; private set; } = FacingDirection.S;
         public bool IsMoving { get; private set; }
         private void Awake()
@@ -22,6 +25,8 @@ namespace ATTILA.Player
             spriteRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             spriteRenderer.receiveShadows = false;
             spriteRenderer.spriteSortPoint = SpriteSortPoint.Pivot;
+            // Every character breathes on its own rhythm, so a crowd never moves in lockstep.
+            seed = Random.value * 10f;
         }
         /// <summary>Raises the sprite so the character sits on a mount.</summary>
         public void SetLift(float value)
@@ -54,11 +59,35 @@ namespace ATTILA.Player
         private void LateUpdate()
         {
             if (viewCamera == null) viewCamera = Camera.main;
-            if (viewCamera != null) spriteRenderer.transform.rotation = viewCamera.transform.rotation;
             if (spriteSet == null) return;
             if (IsMoving) animationTime += Time.deltaTime;
-            spriteRenderer.transform.localScale = Vector3.one * spriteSet.visualScale;
+            idleTime += Time.deltaTime;
             spriteRenderer.sprite = spriteSet.GetSprite(Facing, IsMoving, animationTime);
+
+            // Motion on top of the drawn frames: a bounce on every step and a lean into the direction of travel
+            // while walking; a slow breath while standing. The sprite pivot is at the feet, so they stay planted.
+            float scale = spriteSet.visualScale;
+            float bob = 0f, stretch = 1f, squash = 1f;
+            int side = Facing is FacingDirection.E or FacingDirection.NE or FacingDirection.SE ? 1
+                     : Facing is FacingDirection.W or FacingDirection.NW or FacingDirection.SW ? -1 : 0;
+            if (IsMoving)
+            {
+                float phase = animationTime * spriteSet.StepRate * Mathf.PI * .5f;
+                float beat = Mathf.Abs(Mathf.Sin(phase));
+                bob = beat * .07f;
+                stretch = 1f + beat * .025f;
+                squash = 1f - beat * .015f;
+            }
+            else
+            {
+                float breath = Mathf.Sin(idleTime * 2.1f + seed);
+                stretch = 1f + breath * .012f;
+                squash = 1f - breath * .006f;
+            }
+            lean = Mathf.MoveTowards(lean, IsMoving ? -side * 4f : 0f, Time.deltaTime * 40f);
+            spriteRenderer.transform.localPosition = new Vector3(0f, -.98f + lift + bob, 0f);
+            spriteRenderer.transform.localScale = new Vector3(scale * squash, scale * stretch, scale);
+            if (viewCamera != null) spriteRenderer.transform.rotation = viewCamera.transform.rotation * Quaternion.Euler(0f, 0f, lean);
         }
     }
 }

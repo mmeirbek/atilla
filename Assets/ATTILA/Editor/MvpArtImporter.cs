@@ -62,7 +62,7 @@ namespace ATTILA.Editor
             importer.ReadTextureSettings(settings);
             bool world = folder == "Characters" || folder == "Props";
             string file = Path.GetFileNameWithoutExtension(path);
-            bool centred = file is "glow" or "shadow" or "asyk" or "saka";
+            bool centred = file is "glow" or "shadow" or "asyk" or "saka" or "arrow";
             // Pixels per unit has to go through the settings object: SetTextureSettings overwrites the importer field.
             settings.spritePixelsPerUnit = world ? WorldPixelsPerUnit : 100f;
             settings.spriteMeshType = SpriteMeshType.FullRect;
@@ -126,12 +126,19 @@ namespace ATTILA.Editor
             set.cart = SpriteAt("Props/cart.png");
             set.well = SpriteAt("Props/well.png");
             set.post = SpriteAt("Props/post.png");
+            set.arrow = SpriteAt("Props/arrow.png");
+            set.sandyq = SpriteAt("Props/sandyq.png");
+            set.tandyr = SpriteAt("Props/tandyr.png");
+            set.hay = SpriteAt("Props/hay.png");
+            set.tuft = SpriteAt("Props/tuft.png");
+            set.flowers = new[] { SpriteAt("Props/flowers_0.png"), SpriteAt("Props/flowers_1.png"), SpriteAt("Props/flowers_2.png") };
             set.yurtFrame = AssetDatabase.LoadAssetAtPath<Texture2D>(Root + "Environment/yurt_frame.png");
             set.yurtPoles = AssetDatabase.LoadAssetAtPath<Texture2D>(Root + "Environment/yurt_poles.png");
             set.clay = AssetDatabase.LoadAssetAtPath<Texture2D>(Root + "Environment/clay.png");
             set.cityWall = AssetDatabase.LoadAssetAtPath<Texture2D>(Root + "Environment/city_wall.png");
             set.awning = AssetDatabase.LoadAssetAtPath<Texture2D>(Root + "Environment/awning.png");
             set.tiles = AssetDatabase.LoadAssetAtPath<Texture2D>(Root + "Environment/tiles.png");
+            set.water = AssetDatabase.LoadAssetAtPath<Texture2D>(Root + "Environment/water.png");
             set.props = new[] { "firewood", "torsyk", "kerege", "uyk", "shanyrak", "felt", "post" }
                 .Select(id => new MvpArtSet.NamedSprite { id = id, sprite = SpriteAt($"Props/{id}.png") })
                 .ToList();

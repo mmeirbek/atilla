@@ -44,6 +44,15 @@ MonoBehaviour:
   cart: {fileID: 21300000, guid: c35d7f742b8d347529b8b379b64e9496, type: 3}
   well: {fileID: 21300000, guid: 774adbd38e0fa4aacb0746e0b8d26e0b, type: 3}
   post: {fileID: 21300000, guid: 22c5ee3742eb44e1a9df8c83f97d59e8, type: 3}
+  arrow: {fileID: 21300000, guid: fba0f384aba3b48c19676353f773397d, type: 3}
+  sandyq: {fileID: 21300000, guid: ca6fa25c013c44e7ba2944ca49f7652e, type: 3}
+  tandyr: {fileID: 21300000, guid: cb3d7f0f3771d4d0dbb411f8e42fa6fb, type: 3}
+  hay: {fileID: 21300000, guid: 2027f86ae8ceb4482b041d64ff7ee7fd, type: 3}
+  tuft: {fileID: 21300000, guid: 3a678eed2fc384859adad9b24f18d52a, type: 3}
+  flowers:
+  - {fileID: 21300000, guid: c16bb6838c5384e4fa91a7a7ddd8ff0a, type: 3}
+  - {fileID: 21300000, guid: b946737374992465a936f018f19c87c1, type: 3}
+  - {fileID: 21300000, guid: 95dee50a7027140d6b83c18006b95b6d, type: 3}
   props:
   - id: firewood
     sprite: {fileID: 21300000, guid: f7c8f5474c08d46529465c74486a1a8a, type: 3}
@@ -65,6 +74,7 @@ MonoBehaviour:
   cityWall: {fileID: 2800000, guid: cccc7e9bcc5d84c4d8e43c4c7d82b903, type: 3}
   awning: {fileID: 2800000, guid: d3bcfeebadec146ed87dfca0f97b16a9, type: 3}
   tiles: {fileID: 2800000, guid: 3267e264c023a40ab9c7b63bf5f9102e, type: 3}
+  water: {fileID: 2800000, guid: c19a1f4d5335c4e90a68b573db4c4602, type: 3}
   campfireScene: {fileID: 21300000, guid: 820d690cf04e24255bc20b9a6499f7f0, type: 3}
   mapScene: {fileID: 21300000, guid: 99098ac4fb8814a9cbdaad31626af64f, type: 3}
   asykScene: {fileID: 21300000, guid: 1e005f47e551e4d37a3262b6ec1a1297, type: 3}
@@ -79,6 +89,8 @@ MonoBehaviour:
     sprite: {fileID: 21300000, guid: cda27ff80a83c4fc8bb1d46d6ea1e470, type: 3}
   - id: borik
     sprite: {fileID: 21300000, guid: 184bea5448d1a4561889cb5db8459e17, type: 3}
+  - id: dastarkhan
+    sprite: {fileID: 21300000, guid: 7b9c67862cc15418fb751c5f7a9cf919, type: 3}
   - id: dombra
     sprite: {fileID: 21300000, guid: 3ede66e232853471685b41ee5f747d66, type: 3}
   - id: dulyga

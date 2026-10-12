@@ -43,6 +43,12 @@ namespace ATTILA.Environment
         public Sprite cart;
         public Sprite well;
         public Sprite post;
+        public Sprite arrow;
+        public Sprite sandyq;
+        public Sprite tandyr;
+        public Sprite hay;
+        public Sprite tuft;
+        public Sprite[] flowers;
         [Tooltip("Task props by id: firewood, torsyk, kerege, uyk, shanyrak, felt.")] public List<NamedSprite> props = new();
 
         [Header("Yurt assembly")]
@@ -54,6 +60,7 @@ namespace ATTILA.Environment
         public Texture2D cityWall;
         public Texture2D awning;
         public Texture2D tiles;
+        public Texture2D water;
 
         [Header("Scenes")]
         public Sprite campfireScene;

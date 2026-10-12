@@ -23,9 +23,11 @@ namespace ATTILA.UI
         private bool hovering;
         private bool pressed;
         private bool selected;
+        private int labelSize;
+        private string fittedText;
         private Vector3 targetScale = Vector3.one;
 
-        public static Button Create(Transform parent, string labelText, System.Action action)
+        public static Button Create(Transform parent, string labelText, System.Action action, int fontSize = 40)
         {
             var border = UiFactory.Panel(parent, Gold);
             border.name = labelText;
@@ -39,9 +41,9 @@ namespace ATTILA.UI
             fill.raycastTarget = false;
             UiFactory.Stretch(fill.rectTransform, Vector2.zero, Vector2.one, new Vector2(5, 5), new Vector2(-5, -5));
 
-            var text = UiFactory.Text(fill.transform, labelText, 34, TextAnchor.MiddleCenter, Cream);
+            var text = UiFactory.Text(fill.transform, labelText, fontSize, TextAnchor.MiddleCenter, Cream);
             text.raycastTarget = false;
-            UiFactory.Stretch(text.rectTransform, Vector2.zero, Vector2.one, new Vector2(34, 0), new Vector2(-34, 0));
+            UiFactory.Stretch(text.rectTransform, Vector2.zero, Vector2.one, new Vector2(fontSize < 36 ? 20 : 34, 0), new Vector2(fontSize < 36 ? -20 : -34, 0));
 
             var left = CreateOrnament(fill.transform, "Left Ornament", true);
             var right = CreateOrnament(fill.transform, "Right Ornament", false);
@@ -52,6 +54,7 @@ namespace ATTILA.UI
             visual.label = text;
             visual.ornamentLeft = left;
             visual.ornamentRight = right;
+            visual.labelSize = text.fontSize;
             visual.ApplyState();
             return button;
         }
@@ -83,7 +86,39 @@ namespace ATTILA.UI
             targetScale = pressed ? new Vector3(.96f, .96f, 1f) : active ? new Vector3(1.045f, 1.045f, 1f) : Vector3.one;
         }
 
-        private void Update() => transform.localScale = Vector3.Lerp(transform.localScale, targetScale, Time.unscaledDeltaTime * 16f);
+        private void Start() => FitLabel();
+        private void OnRectTransformDimensionsChange() => FitLabel();
+
+        /// <summary>Steps the pixel font down a grid size at a time until no word is split and every line fits.</summary>
+        public void FitLabel()
+        {
+            if (label == null || labelSize == 0) return;
+            fittedText = label.text;
+            var rect = label.rectTransform.rect;
+            if (rect.width <= 0f || rect.height <= 0f) return;
+            int size = labelSize;
+            label.fontSize = size;
+            while (size > 16 && !LabelFits(rect))
+            {
+                size -= 8;
+                label.fontSize = size;
+            }
+        }
+
+        private bool LabelFits(Rect rect)
+        {
+            var generator = label.cachedTextGeneratorForLayout;
+            var settings = label.GetGenerationSettings(Vector2.zero);
+            foreach (var word in label.text.Split(' '))
+                if (generator.GetPreferredWidth(word, settings) / label.pixelsPerUnit > rect.width) return false;
+            return label.preferredHeight <= rect.height + 1f;
+        }
+
+        private void Update()
+        {
+            transform.localScale = Vector3.Lerp(transform.localScale, targetScale, Time.unscaledDeltaTime * 16f);
+            if (label != null && label.text != fittedText) FitLabel();
+        }
 
         private static Color ColorFromHex(string hex)
         {

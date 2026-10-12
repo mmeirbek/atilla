@@ -69,18 +69,27 @@ namespace ATTILA.UI
             title.Border.raycastTarget = false;
             GameUiKit.Label(title.Content, definition.title, 34, MenuUiKit.Gold, TextAnchor.MiddleCenter, 20, 20, 840, 48);
 
-            var panel = GameUiKit.InkPanel(transform, new Vector2(1f, .5f), new Vector2(640, 520), new Vector2(-360, 40));
+            // Rows are laid out in pixels from the top, so any number of topics stacks above the leave button.
+            const float row = 100f, top = 86f;
+            float height = top + definition.topics.Count * row + 150f;
+            var panel = GameUiKit.InkPanel(transform, new Vector2(1f, .5f), new Vector2(640, height), new Vector2(-360, 20));
             buttonGroup = panel.GameObject.AddComponent<CanvasGroup>();
             GameUiKit.Label(panel.Content, "НЕ ТУРАЛЫ СҰРАЙСЫҢ?", 24, MenuUiKit.Gold, TextAnchor.UpperCenter, 30, 28, 560, 34);
             for (int i = 0; i < definition.topics.Count; i++)
             {
                 var topic = definition.topics[i];
-                var button = MenuPixelButton.Create(panel.Content, topic.label, () => Ask(topic));
-                UiFactory.SetRect(button.GetComponent<RectTransform>(), new Vector2(.5f, .66f - i * .17f), new Vector2(580, 94), Vector2.zero);
+                var button = MenuPixelButton.Create(panel.Content, topic.label, () => Ask(topic), 34);
+                var rect = button.GetComponent<RectTransform>();
+                rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(.5f, 1f);
+                rect.sizeDelta = new Vector2(580, 88);
+                rect.anchoredPosition = new Vector2(0, -(top + i * row));
                 topicButtons.Add(button);
             }
             leaveButton = MenuPixelButton.Create(panel.Content, "ҰЙЫҚТАУҒА", Leave);
-            UiFactory.SetRect(leaveButton.GetComponent<RectTransform>(), new Vector2(.5f, .1f), new Vector2(480, 88), Vector2.zero);
+            var leave = leaveButton.GetComponent<RectTransform>();
+            leave.anchorMin = leave.anchorMax = leave.pivot = new Vector2(.5f, 0f);
+            leave.sizeDelta = new Vector2(500, 100);
+            leave.anchoredPosition = new Vector2(0, 26);
             leaveButton.interactable = false;
             AudioService.PlayMusic(MusicTrack.Night);
         }
@@ -131,6 +140,10 @@ namespace ATTILA.UI
     public sealed class MapScreen : MonoBehaviour
     {
         private const float DrawSeconds = 2.4f;
+        /// <summary>Centre of the empty legend frame drawn in the map's bottom-left corner, in 0..1 map space.</summary>
+        private static readonly Vector2 LegendBox = new(.172f, .105f);
+        /// <summary>Names already lettered on the map; a marker for one of these needs no extra plate.</summary>
+        private static readonly string[] DrawnNames = { "Сарыарқа", "Түркістан", "Аңырақай", "Сырдария", "Қозыбасы", "Жетісу", "Шу", "Ұлытау", "Балқаш", "Қаратау", "Тараз", "Отырар", "Сауран", "Сығанақ" };
         private MapDefinition definition;
         private Action done;
         private RectTransform mapRect;
@@ -160,11 +173,13 @@ namespace ATTILA.UI
             UiFactory.SetRect(map.rectTransform, new Vector2(.5f, .5f), new Vector2(1760, 990), new Vector2(0, 20));
             mapRect = map.rectTransform;
 
-            var title = GameUiKit.Panel(transform, new Vector2(.5f, 1f), new Vector2(940, 100), new Vector2(0, -66),
-                new Color(MenuUiKit.Burgundy.r, MenuUiKit.Burgundy.g, MenuUiKit.Burgundy.b, .96f), MenuUiKit.Gold);
+            // The title sits in the map's own empty legend box (bottom left), so no drawn place name is covered.
+            var title = GameUiKit.Panel(mapRect, new Vector2(.5f, .5f), new Vector2(488, 116), Vector2.zero,
+                new Color(MenuUiKit.Burgundy.r, MenuUiKit.Burgundy.g, MenuUiKit.Burgundy.b, .96f), MenuUiKit.Gold, 4f);
             title.Border.raycastTarget = false;
-            GameUiKit.Label(title.Content, definition.title, 34, MenuUiKit.Cream, TextAnchor.MiddleCenter, 20, 8, 880, 44);
-            GameUiKit.Label(title.Content, definition.goal, 22, MenuUiKit.Parchment, TextAnchor.MiddleCenter, 20, 52, 880, 32);
+            Place(title.Rect, LegendBox);
+            GameUiKit.Label(title.Content, definition.title, 34, MenuUiKit.Cream, TextAnchor.MiddleCenter, 10, 14, 460, 40);
+            GameUiKit.Label(title.Content, definition.goal, 22, MenuUiKit.Parchment, TextAnchor.MiddleCenter, 10, 64, 460, 32);
 
             var points = definition.route;
             if (points != null && points.Length > 1)
@@ -186,7 +201,7 @@ namespace ATTILA.UI
 
             AudioService.PlayMusic(MusicTrack.Map);
             var go = MenuPixelButton.Create(transform, "ЖОЛҒА ШЫҒУ", Continue);
-            UiFactory.SetRect(go.GetComponent<RectTransform>(), new Vector2(.5f, .06f), new Vector2(540, 96), Vector2.zero);
+            UiFactory.SetRect(go.GetComponent<RectTransform>(), new Vector2(.5f, .06f), new Vector2(600, 112), Vector2.zero);
         }
 
         private void Place(RectTransform rect, Vector2 normalized)
@@ -209,6 +224,8 @@ namespace ATTILA.UI
         {
             var diamond = UiFactory.Diamond(mapRect, 26f, color);
             Place(diamond.rectTransform, normalized);
+            foreach (var name in DrawnNames)
+                if (label.Contains(name)) return;
             var plate = GameUiKit.Panel(mapRect, new Vector2(.5f, .5f), new Vector2(Mathf.Max(220, label.Length * 20 + 40), 52), Vector2.zero,
                 new Color(GameUiKit.Ink.r, GameUiKit.Ink.g, GameUiKit.Ink.b, .9f), MenuUiKit.Gold, 3f);
             plate.Border.raycastTarget = false;

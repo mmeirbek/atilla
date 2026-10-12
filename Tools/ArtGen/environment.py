@@ -285,6 +285,93 @@ def well():
     return outlined(c.image)
 
 
+def arrow():
+    c = Canvas(28, 34)
+    gold, light, dark = (226, 168, 78), (250, 216, 140), (150, 96, 40)
+    c.poly([(14, 2), (26, 16), (19, 16), (19, 31), (9, 31), (9, 16), (2, 16)], gold)
+    c.poly([(14, 5), (22, 15), (17, 15), (17, 29), (11, 29), (11, 15), (6, 15)], light)
+    c.poly([(14, 9), (19, 15), (16, 15), (16, 27), (12, 27), (12, 15), (9, 15)], gold)
+    c.line(14, 3, 25, 16, dark)
+    return outlined(c.image, dark)
+
+
+def water_texture():
+    size = 64
+    noise = fractal(size, size, 41, cells=(16, 8))
+    image = Image.new("RGB", (size, size))
+    px = image.load()
+    palette = [(48, 104, 140), (58, 122, 158), (74, 142, 176), (96, 166, 196)]
+    for y in range(size):
+        for x in range(size):
+            v = noise[y][x] * .7 + .3 * (.5 + .5 * math.sin((x + y * .6) * .5))
+            px[x, y] = palette[dither(v, x, y, len(palette))]
+    draw = ImageDraw.Draw(image)
+    rng = random.Random(9)
+    for _ in range(18):
+        x, y = rng.randrange(size), rng.randrange(size)
+        draw.line([(x, y), (x + 4, y)], fill=(170, 210, 226))
+        draw.point([(x + 6, y + 1)], fill=(198, 226, 236))
+    return image
+
+
+def flowers(kind):
+    c = Canvas(14, 12)
+    stem = (86, 116, 54)
+    petal = [(226, 96, 96), (236, 206, 96), (216, 216, 232)][kind]
+    for x, h in ((3, 6), (7, 8), (10, 5)):
+        c.rect(x, 12 - h, x, 11, stem)
+        c.px(x, 12 - h - 1, petal)
+        c.px(x - 1, 12 - h, petal)
+        c.px(x + 1, 12 - h, petal)
+        c.px(x, 12 - h + 1, (250, 232, 150) if kind != 1 else (240, 160, 80))
+    return outlined(c.image, (60, 84, 40))
+
+
+def tuft():
+    c = Canvas(16, 12)
+    for x, h, tone in ((2, 7, (118, 142, 66)), (5, 10, (136, 158, 74)), (8, 8, (108, 132, 60)), (11, 9, (126, 150, 70)), (13, 6, (110, 134, 62))):
+        c.line(x, 11, x + 1, 11 - h, tone)
+        c.px(x + 1, 11 - h - 1, tone)
+    return outlined(c.image, (62, 86, 44))
+
+
+def sandyq():
+    c = Canvas(34, 26)
+    body, trim = (132, 52, 40), GOLD
+    c.rect(2, 8, 31, 24, body)
+    c.poly([(2, 8), (31, 8), (28, 2), (5, 2)], (158, 66, 48))
+    c.rect(2, 12, 31, 13, trim)
+    c.rect(15, 8, 18, 24, trim)
+    for x in (7, 24):
+        c.poly([(x, 16), (x + 3, 19), (x, 22), (x - 3, 19)], trim)
+    c.rect(2, 23, 31, 24, (86, 34, 26))
+    return outlined(c.image)
+
+
+def tandyr():
+    c = Canvas(30, 34)
+    clay, dark = (176, 128, 84), (132, 92, 58)
+    c.poly([(5, 33), (25, 33), (22, 8), (8, 8)], clay)
+    c.ellipse(7, 3, 23, 13, clay)
+    c.ellipse(10, 5, 20, 11, (58, 40, 34))
+    c.rect(11, 24, 19, 31, (48, 34, 30))
+    c.rect(12, 26, 18, 30, (228, 128, 52))
+    c.px(15, 28, (252, 206, 120))
+    for y in (14, 19):
+        c.rect(6, y, 24, y + 1, dark)
+    return outlined(c.image)
+
+
+def hay():
+    c = Canvas(40, 30)
+    for i, (x, y, w) in enumerate(((4, 12, 32), (7, 6, 26), (11, 2, 18))):
+        tone = (206, 176, 96) if i % 2 == 0 else (188, 156, 82)
+        c.ellipse(x, y, x + w, y + 16, tone)
+    for x in range(6, 34, 3):
+        c.px(x, 16 + (x % 5), (160, 130, 66))
+    return outlined(c.image)
+
+
 def firewood():
     c = Canvas(40, 26)
     for i, (x, y) in enumerate([(4, 16), (12, 14), (20, 15), (28, 13)]):
@@ -669,7 +756,15 @@ def map_scene():
     mountains([(196, 180), (210, 174), (224, 170)], snow=False, size=7)
     mountains([(224, 92), (238, 88)], snow=False, size=6)
     mountains([(296, 174), (310, 172)], snow=False, size=6)
+    mountains([(372, 66), (388, 58)], snow=False, size=7)
+    mountains([(150, 66), (164, 60)], snow=False, size=6)
     rng = random.Random(4)
+    # Soft relief: a dry hill shading pass over the steppe so the parchment is not flat.
+    for _ in range(420):
+        hx, hy = rng.randint(30, 470), rng.randint(20, 250)
+        if 86 < hx < 140 and 126 < hy < 172:
+            continue
+        draw.point([(hx, hy)], fill=(206, 176, 126) if (hx + hy) % 3 else (198, 166, 118))
     for _ in range(46):
         x, y = rng.randint(150, 400), rng.randint(24, 84)
         draw.point([(x, y), (x + 1, y - 1), (x + 2, y)], fill=(150, 130, 74))
@@ -688,6 +783,29 @@ def map_scene():
     waves(4, 80, 26, 240, 22)
     waves(94, 136, 128, 164, 8)
     waves(268, 98, 370, 118, 10)
+
+    def hatch(points, inward=1):
+        for i in range(len(points) - 1):
+            x0, y0 = points[i]
+            x1, y1 = points[i + 1]
+            steps = max(2, int(math.hypot(x1 - x0, y1 - y0) / 5))
+            for k in range(steps):
+                t = k / steps
+                hx, hy = x0 + (x1 - x0) * t, y0 + (y1 - y0) * t
+                nx, ny = -(y1 - y0), (x1 - x0)
+                length = max(.001, math.hypot(nx, ny))
+                nx, ny = nx / length * 4 * inward, ny / length * 4 * inward
+                draw.line([(hx, hy), (hx + nx, hy + ny)], fill=(120, 150, 156))
+
+    def road(points):
+        for i in range(len(points) - 1):
+            x0, y0 = points[i]
+            x1, y1 = points[i + 1]
+            steps = max(2, int(math.hypot(x1 - x0, y1 - y0) / 6))
+            for k in range(steps):
+                t = k / steps
+                px2, py2 = x0 + (x1 - x0) * t, y0 + (y1 - y0) * t
+                draw.point([(px2, py2), (px2 + 1, py2)], fill=(146, 100, 58))
 
     def town(x, y, big=False):
         width = 11 if big else 8
@@ -723,14 +841,28 @@ def map_scene():
             draw.line([(gx, gy), (gx, gy - 4)], fill=(96, 78, 48))
             draw.ellipse([gx - 3, gy - 8, gx + 3, gy - 3], fill=(118, 132, 76))
 
+    hatch([(22, 76), (34, 110), (28, 150), (40, 190), (30, 230)])
+    hatch([(96, 132), (126, 138), (134, 152), (120, 168), (96, 160), (88, 146)])
+    hatch([(262, 104), (290, 100), (320, 104), (350, 110), (376, 120)], -1)
+    road([(182, 188), (215, 206), (243, 216), (272, 222), (302, 226)])
+    road([(215, 206), (232, 180), (246, 150), (258, 120), (266, 92)])
+    road([(302, 226), (330, 210), (352, 186), (370, 160), (386, 140)])
     town(182, 188)
     town(215, 206, True)
     town(243, 216)
     town(302, 226)
-    camp(268, 66)
+    town(340, 140)
+    town(268, 60)
+    camp(240, 70)
     camp(196, 116, 2)
     camp(352, 150, 2)
     camp(148, 196, 2)
+    camp(318, 84, 3)
+    camp(112, 96, 2)
+    camp(420, 100, 2)
+    camp(196, 244, 2)
+    caravan(330, 170)
+    caravan(210, 96)
     caravan(250, 196)
     caravan(170, 172)
     grove(140, 170)
@@ -751,10 +883,11 @@ def map_scene():
     for x, y in ((4, 4), (w - 13, 4), (4, h - 13), (w - 13, h - 13)):
         draw.rectangle([x, y, x + 8, y + 8], fill=BURGUNDY)
         draw.rectangle([x + 3, y + 3, x + 5, y + 5], fill=GOLD)
-    draw.rectangle([16, h - 40, 112, h - 16], fill=(214, 186, 138), outline=INK)
-    draw.line([(24, h - 24), (104, h - 24)], fill=INK)
-    for x in range(24, 105, 20):
-        draw.line([(x, h - 28), (x, h - 20)], fill=INK)
+    draw.rectangle([14, h - 46, 150, h - 14], fill=(216, 188, 140), outline=INK)
+    draw.rectangle([17, h - 43, 147, h - 17], outline=(160, 120, 76))
+    draw.line([(24, h - 22), (140, h - 22)], fill=INK)
+    for x in range(24, 141, 29):
+        draw.line([(x, h - 26), (x, h - 18)], fill=INK)
     return image.convert("RGBA")
 
 
@@ -764,7 +897,7 @@ def map_labels(image, font_path):
     labels = [("Арал", 94, 136), ("Балқаш", 290, 84), ("Сырдария", 120, 208), ("Сарыарқа", 236, 46), ("Жетісу", 392, 148),
               ("Алатау", 380, 232), ("Ұлытау", 200, 96), ("Қаратау", 146, 152), ("Шу", 258, 186), ("Каспий", 30, 52),
               ("Сығанақ", 160, 176), ("Түркістан", 196, 218), ("Отырар", 232, 228), ("Тараз", 292, 238), ("Ертіс", 352, 18),
-              ("Іле", 424, 158)]
+              ("Іле", 424, 178), ("Сауран", 344, 126), ("Аңырақай", 268, 160), ("Қозыбасы", 318, 196), ("Сарысу", 214, 122)]
     for text, x, y in labels:
         draw.text((x + 1, y + 1), text, font=font, fill=(236, 214, 170))
         draw.text((x, y), text, font=font, fill=INK)
@@ -968,6 +1101,18 @@ def icon(name):
         c.rect(19, 20, 21, 29, (110, 64, 36))
         c.poly([(6, 13), (2, 17), (3, 25), (6, 20)], (50, 34, 26))
         c.rect(11, 10, 17, 13, (150, 30, 34))
+    elif name == "dastarkhan":
+        c.ellipse(1, 8, 30, 28, (226, 212, 180))
+        c.ellipse(4, 10, 27, 26, (198, 60, 52))
+        for x in range(6, 26, 4):
+            c.px(x, 11, GOLD)
+            c.px(x, 25, GOLD)
+        c.ellipse(9, 13, 19, 21, (236, 228, 208))
+        c.ellipse(11, 15, 17, 19, (176, 128, 74))
+        c.ellipse(20, 16, 27, 22, (226, 168, 92))
+        c.px(22, 18, (250, 216, 150))
+        c.ellipse(4, 17, 9, 22, (150, 106, 62))
+        c.rect(8, 18, 10, 19, (150, 106, 62))
     elif name == "lock":
         c.rect(8, 14, 23, 28, GOLD)
         c.rect(8, 14, 23, 15, GOLD_LIGHT)
@@ -985,7 +1130,7 @@ def icon(name):
 
 
 ICONS = ["shapan", "borik", "etik", "kimeshek", "kamzol", "belbeu", "asyk", "blindfold", "banner", "swords", "dombra", "lock",
-         "sauyt", "dulyga", "naiza", "koilek", "takiya", "tymak", "yurt", "zhuz", "horse"]
+         "sauyt", "dulyga", "naiza", "koilek", "takiya", "tymak", "yurt", "zhuz", "horse", "dastarkhan"]
 
 
 # ---------------------------------------------------------------- menu card composition

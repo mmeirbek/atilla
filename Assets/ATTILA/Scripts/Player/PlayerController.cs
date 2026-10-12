@@ -1,3 +1,4 @@
+using ATTILA.UI;
 using UnityEngine;
 
 namespace ATTILA.Player
@@ -16,8 +17,7 @@ namespace ATTILA.Player
         private void Update()
         {
             if (!inputEnabled) return;
-            Vector2 input = new(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
-            input = Vector2.ClampMagnitude(input, 1f);
+            Vector2 input = VirtualInput.Movement();
             Vector3 move = new(input.x, 0f, input.y);
             if (move.sqrMagnitude > 0.001f)
             {

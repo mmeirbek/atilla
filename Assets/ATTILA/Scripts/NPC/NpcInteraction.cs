@@ -65,11 +65,11 @@ namespace ATTILA.NPC
             if (travel != null)
             {
                 ui?.SetPrompt("E  ·  ЖОЛҒА ШЫҒУ");
-                if (Input.GetKeyDown(KeyCode.E)) director.OpenTravel();
+                if (VirtualInput.Action()) director.OpenTravel();
                 return;
             }
             ui?.SetPrompt(nearest == null ? string.Empty : $"E  ·  {nearest.DisplayName}");
-            if (nearest != null && Input.GetKeyDown(KeyCode.E)) nearest.Interact();
+            if (nearest != null && VirtualInput.Action()) nearest.Interact();
         }
 
         private TravelPoint NearestTravelPoint()

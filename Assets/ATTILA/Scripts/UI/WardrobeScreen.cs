@@ -50,9 +50,9 @@ namespace ATTILA.UI
             UiFactory.SetRect(preview.rectTransform, new Vector2(.5f, .6f), new Vector2(360, 600), Vector2.zero);
             previewName = GameUiKit.Label(stand.Content, string.Empty, 30, MenuUiKit.Gold, TextAnchor.MiddleCenter, 40, 596, 510, 46);
             var left = MenuPixelButton.Create(stand.Content, "‹", () => Shift(-1));
-            UiFactory.SetRect(left.GetComponent<RectTransform>(), new Vector2(.22f, .075f), new Vector2(120, 88), Vector2.zero);
+            UiFactory.SetRect(left.GetComponent<RectTransform>(), new Vector2(.22f, .095f), new Vector2(140, 104), Vector2.zero);
             var right = MenuPixelButton.Create(stand.Content, "›", () => Shift(1));
-            UiFactory.SetRect(right.GetComponent<RectTransform>(), new Vector2(.78f, .075f), new Vector2(120, 88), Vector2.zero);
+            UiFactory.SetRect(right.GetComponent<RectTransform>(), new Vector2(.78f, .095f), new Vector2(140, 104), Vector2.zero);
 
             var list = GameUiKit.InkPanel(transform, new Vector2(.5f, .5f), new Vector2(520, 740), new Vector2(-40, -20));
             GameUiKit.Label(list.Content, "КИІМДЕРІ", 24, MenuUiKit.Gold, TextAnchor.UpperCenter, 20, 22, 440, 34);
@@ -99,7 +99,7 @@ namespace ATTILA.UI
             itemTitle.text = item.title;
             itemSlot.text = item.slot;
             itemText.text = item.description;
-            itemStatus.text = item.status == ContentStatus.Draft ? "ДЕРЕККӨЗІ ТЕКСЕРІЛУДЕ" : string.Empty;
+            itemStatus.text = item.status == ContentStatus.Draft && ContentReview.ShowDraftMarks ? "ДЕРЕККӨЗІ ТЕКСЕРІЛУДЕ" : string.Empty;
         }
 
         private void Shift(int direction)

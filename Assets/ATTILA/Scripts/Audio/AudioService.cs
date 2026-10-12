@@ -38,6 +38,16 @@ namespace ATTILA.Audio
         public static MusicTrack CurrentTrack => instance != null ? instance.currentTrack : MusicTrack.None;
 
         public static void Play(Sfx sfx, float volume = 1f, float pitch = 1f) => Instance.PlayEffect(sfx, volume, pitch);
+
+        /// <summary>Keeps exactly one listener alive: ours, unless a scene camera brought its own.</summary>
+        private void EnsureSingleListener()
+        {
+            var mine = GetComponent<AudioListener>();
+            if (mine == null) return;
+            foreach (var other in FindObjectsByType<AudioListener>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+                if (other != mine && other.enabled) { mine.enabled = false; return; }
+            mine.enabled = true;
+        }
         public static void PlayMusic(MusicTrack track) => Instance.SwitchMusic(track);
 
         public static void SetMusicVolume(float value)
@@ -50,6 +60,8 @@ namespace ATTILA.Audio
 
         private void Build()
         {
+            // The menu scenes have no camera, so nothing could be heard there until the service brought its own ear.
+            if (GetComponent<AudioListener>() == null) gameObject.AddComponent<AudioListener>();
             for (int i = 0; i < SfxVoices; i++) voices[i] = NewSource("Sfx " + i, false);
             musicSource = NewSource("Music A", true);
             fadingSource = NewSource("Music B", true);
@@ -94,8 +106,15 @@ namespace ATTILA.Audio
             fade = 0f;
         }
 
+        private float nextListenerCheck;
+
         private void Update()
         {
+            if (Time.unscaledTime > nextListenerCheck)
+            {
+                nextListenerCheck = Time.unscaledTime + .5f;
+                EnsureSingleListener();
+            }
             if (fade < 1f) fade = Mathf.Min(1f, fade + Time.unscaledDeltaTime / MusicFadeSeconds);
             ApplyMusicVolume();
         }

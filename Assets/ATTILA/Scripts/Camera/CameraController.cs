@@ -13,6 +13,15 @@ namespace ATTILA.CameraSystem
         private Vector3 followVelocity;
         private Vector3 smoothed;
         private static readonly Quaternion ViewRotation = Quaternion.Euler(40f, 0f, 0f);
+        private static float shakeStrength, shakeUntil, shakeLength;
+
+        /// <summary>Jolts the view for a moment: hits, catches and the bәйге finish.</summary>
+        public static void Shake(float strength, float seconds)
+        {
+            shakeStrength = strength;
+            shakeLength = Mathf.Max(.01f, seconds);
+            shakeUntil = Time.unscaledTime + seconds;
+        }
         private Vector3 DesiredPosition => target.position - ViewRotation * Vector3.forward * 24f;
 
         private void Awake()
@@ -40,6 +49,12 @@ namespace ATTILA.CameraSystem
             if (target == null) return;
             smoothed = Vector3.SmoothDamp(smoothed, DesiredPosition, ref followVelocity, followSmoothTime);
             transform.position = Snap(smoothed);
+            float left = shakeUntil - Time.unscaledTime;
+            if (left > 0f)
+            {
+                var offset = (Vector3)(Random.insideUnitCircle * shakeStrength * (left / shakeLength));
+                transform.position += ViewRotation * offset;
+            }
             transform.rotation = ViewRotation;
         }
 

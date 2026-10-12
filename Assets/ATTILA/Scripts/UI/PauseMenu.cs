@@ -21,7 +21,7 @@ namespace ATTILA.UI
 
         private void Update()
         {
-            if (!Input.GetKeyDown(KeyCode.Escape)) return;
+            if (!VirtualInput.Menu()) return;
             if (IsPaused) Resume();
             else if (!director.Ui.DialogueActive) Open();
         }
@@ -35,22 +35,22 @@ namespace ATTILA.UI
             canvas.transform.SetParent(transform, false);
             var veil = UiFactory.Panel(canvas.transform, new Color(.06f, .03f, .03f, .72f));
             UiFactory.Stretch(veil.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-            var frame = GameUiKit.InkPanel(canvas.transform, new Vector2(.5f, .5f), new Vector2(820, 780), Vector2.zero);
+            var frame = GameUiKit.InkPanel(canvas.transform, new Vector2(.5f, .5f), new Vector2(900, 860), Vector2.zero);
             GameUiKit.Label(frame.Content, "ҮЗІЛІС", 40, MenuUiKit.Gold, TextAnchor.UpperCenter, 30, 40, 680, 56);
             GameUiKit.Pixel(frame.Content, 200, 112, 340, 3, MenuUiKit.Gold);
             menuRoot = frame.Content;
             GameUiKit.Label(frame.Content, director.Chapter != null ? director.Chapter.title : string.Empty, 22, MenuUiKit.Parchment, TextAnchor.UpperCenter, 30, 130, 680, 34);
-            Button("ЖАЛҒАСТЫРУ", .70f, Resume);
-            Button("ЭНЦИКЛОПЕДИЯ", .58f, () => EncyclopediaScreen.Show(canvas.transform));
-            Button("БАПТАУЛАР", .46f, () => SettingsScreen.Show(canvas.transform));
-            Button("ТАРАУДЫ ҚАЙТА БАСТАУ", .34f, () => { Resume(); director.RestartChapter(); });
-            Button("БАСТЫ МӘЗІР", .22f, () => { Resume(); SceneLoader.Load(SceneId.MainMenu); });
+            Button("ЖАЛҒАСТЫРУ", .72f, Resume);
+            Button("ЭНЦИКЛОПЕДИЯ", .585f, () => EncyclopediaScreen.Show(canvas.transform));
+            Button("БАПТАУЛАР", .45f, () => SettingsScreen.Show(canvas.transform));
+            Button("ТАРАУДЫ ҚАЙТА БАСТАУ", .315f, () => { Resume(); director.RestartChapter(); });
+            Button("БАСТЫ МӘЗІР", .18f, () => { Resume(); SceneLoader.Load(SceneId.MainMenu); });
         }
 
         private void Button(string label, float y, System.Action action)
         {
             var button = MenuPixelButton.Create(menuRoot, label, action);
-            UiFactory.SetRect(button.GetComponent<RectTransform>(), new Vector2(.5f, y), new Vector2(660, 96), Vector2.zero);
+            UiFactory.SetRect(button.GetComponent<RectTransform>(), new Vector2(.5f, y), new Vector2(740, 112), Vector2.zero);
         }
 
         private void Resume()

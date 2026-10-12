@@ -42,8 +42,8 @@ namespace ATTILA.UI
                 resetNote.text = "Прогресс тазартылды. Барлық тарау қайтадан басталады.";
             });
             var rect = reset.GetComponent<RectTransform>();
-            GameUiKit.PlaceTopLeft(rect, 60, 496, 560, 92);
-            resetNote = GameUiKit.Label(panel.Content, "Дыбыс деңгейі мен прогресс сақтау файлында сақталады.", 20, GameUiKit.Muted, TextAnchor.UpperLeft, 650, 524, 460, 64);
+            GameUiKit.PlaceTopLeft(rect, 60, 492, 560, 104);
+            resetNote = GameUiKit.Label(panel.Content, "Дыбыс деңгейі мен прогресс сақтау файлында сақталады.", 20, GameUiKit.Muted, TextAnchor.UpperLeft, 660, 512, 440, 80);
         }
 
         /// <summary>One row: caption on the left, track in the middle, live percentage on the right.</summary>

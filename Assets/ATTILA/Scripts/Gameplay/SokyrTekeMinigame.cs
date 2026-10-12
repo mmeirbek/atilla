@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ATTILA.Audio;
 using ATTILA.Environment;
 using ATTILA.Player;
+using ATTILA.UI;
 using UnityEngine;
 
 namespace ATTILA.Gameplay
@@ -16,7 +17,7 @@ namespace ATTILA.Gameplay
         private const float Duration = 45f;
         private const int Needed = 2;
         private const float Radius = 8.5f;
-        private const float CatchDistance = 1.5f;
+        private const float CatchDistance = 1.8f;
         private static readonly Vector3 Centre = new(0f, 1f, -12f);
 
         private sealed class Runner
@@ -34,7 +35,7 @@ namespace ATTILA.Gameplay
         private Action won, lost;
         private float startedAt, nextClap, clapHide;
         private int caught;
-        private bool active;
+        private bool active, playing;
         private Vector3 returnPosition;
 
         public void Begin(PlayerController playerController, Action onWon, Action onLost)
@@ -45,8 +46,7 @@ namespace ATTILA.Gameplay
             lost = onLost;
             caught = 0;
             active = true;
-            startedAt = Time.time;
-            nextClap = Time.time + .6f;
+            playing = false;
             returnPosition = player.transform.position;
             Teleport(player.transform, Centre);
 
@@ -88,6 +88,16 @@ namespace ATTILA.Gameplay
             ui.ShowMinigame("СОҚЫР ТЕКЕ", "Көзің байлаулы. Шапалақ дыбысына жүріп, екі баланы ұста.");
             ui.SetMinigameStatus($"Ұсталды: 0/{Needed}");
             ui.SetVignette(.97f, 900f);
+            ui.SetMinigameTime(Duration);
+            player.SetInputEnabled(false);
+            MinigameFx.Countdown(ui.OverlayRoot, () =>
+            {
+                if (!active) return;
+                playing = true;
+                startedAt = Time.time;
+                nextClap = Time.time + .4f;
+                player.SetInputEnabled(true);
+            });
         }
 
         private static void Teleport(Transform target, Vector3 position)
@@ -101,7 +111,7 @@ namespace ATTILA.Gameplay
 
         private void Update()
         {
-            if (!active) return;
+            if (!active || !playing) return;
             var ui = StoryDirector.Active.Ui;
             float remaining = Mathf.Max(0f, Duration - (Time.time - startedAt));
             ui.SetMinigameTime(remaining);
@@ -153,12 +163,22 @@ namespace ATTILA.Gameplay
             clapMarker.transform.position = closest.Transform.position + Vector3.up * 2.6f;
             renderer.enabled = true;
             clapHide = Time.time + .45f;
+            // The sound made visible: rings spread from the clapping child, louder when close.
+            var overlay = (RectTransform)StoryDirector.Active.Ui.OverlayRoot;
+            var at = MinigameFx.WorldToOverlay(overlay, closest.Transform.position + Vector3.up * 1.2f);
+            float loud = Mathf.Clamp01(1.3f - best / 12f);
+            MinigameFx.Ripple(overlay, at, new Color(1f, .9f, .6f, .35f + loud * .5f), 160f + loud * 160f);
         }
 
         private void Catch(Runner runner)
         {
             caught++;
-            AudioService.Play(Sfx.Reward, .7f, 1.2f);
+            AudioService.Play(Sfx.Reward, .9f, 1.2f);
+            var overlay = (RectTransform)StoryDirector.Active.Ui.OverlayRoot;
+            var at = MinigameFx.WorldToOverlay(overlay, runner.Transform.position + Vector3.up * 1.2f);
+            MinigameFx.Burst(overlay, at, MenuUiKit.Gold, 20, 560f);
+            MinigameFx.Popup(overlay, at + new Vector2(0, 80), "ҰСТАДЫҢ!", MenuUiKit.Gold, 56);
+            MinigameFx.ShakeCamera(.2f, .3f);
             runners.Remove(runner);
             Destroy(runner.Transform.gameObject);
             StoryDirector.Active.Ui.SetMinigameStatus($"Ұсталды: {caught}/{Needed}");
@@ -167,12 +187,18 @@ namespace ATTILA.Gameplay
         private void Finish(bool success)
         {
             active = false;
+            playing = false;
+            player.SetInputEnabled(false);
             var ui = StoryDirector.Active.Ui;
-            ui.HideMinigame();
             ui.SetVignette(.38f, 3000f);
-            Cleanup();
-            Teleport(player.transform, returnPosition);
-            if (success) won?.Invoke(); else lost?.Invoke();
+            MinigameFx.Result(ui.OverlayRoot, success, success ? "Көзің байлаулы болса да, екеуін де ұстадың!" : "Балалар қашып құтылды.", () =>
+            {
+                ui.HideMinigame();
+                Cleanup();
+                Teleport(player.transform, returnPosition);
+                player.SetInputEnabled(true);
+                if (success) won?.Invoke(); else lost?.Invoke();
+            });
         }
 
         private void Cleanup()

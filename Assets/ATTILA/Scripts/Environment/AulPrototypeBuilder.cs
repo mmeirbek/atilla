@@ -49,6 +49,14 @@ namespace ATTILA.Environment
             _ => "Ауыл"
         };
 
+        /// <summary>The name with its "to" ending, for lines such as «Далаға бару».</summary>
+        public static string LocationTo(LocationId location) => location switch
+        {
+            LocationId.Steppe => "Далаға",
+            LocationId.City => "Түркістанға",
+            _ => "Ауылға"
+        };
+
         private void Start()
         {
             Active = this;
@@ -62,6 +70,7 @@ namespace ATTILA.Environment
             var camera = BuildCamera(player.transform);
             pixelCamera = PixelCamera.Attach(camera, Tint(start));
             gameObject.AddComponent<QuestMarker>();
+            gameObject.AddComponent<UI.GuideArrows>();
             gameObject.AddComponent<AllyWatch>().Initialize(chapter, content);
             BuildLocation(start);
             director.Initialize(player.GetComponent<PlayerController>());
@@ -89,6 +98,7 @@ namespace ATTILA.Environment
                 case LocationId.City: BuildCity(); break;
                 default: BuildAul(); break;
             }
+            WorldEdges();
             BuildPeople(location);
             BuildTravelPoint(location);
             if (pixelCamera != null) pixelCamera.SetTint(Tint(location));
@@ -124,6 +134,16 @@ namespace ATTILA.Environment
         private void BuildAul()
         {
             Ground(26f);
+            reserved.Clear();
+            foreach (var spot in YurtSpots) Reserve(spot, 5f);
+            Reserve(new Vector3(-3.6f, 0f, -1.6f), 3.5f);   // campfire
+            Reserve(new Vector3(0f, 0f, -12f), 9.5f);        // соқыр теке clearing
+            Reserve(new Vector3(-8.4f, 0f, .4f), 5f);        // yurt assembly site
+            Reserve(new Vector3(4.6f, 0f, -6.4f), 2.5f);     // well
+            Reserve(new Vector3(0f, 0f, 0f), 3.5f);          // spawn
+            Reserve(new Vector3(2.8f, 0f, -18.5f), 3.5f);    // travel cart
+            for (int z = -24; z <= 24; z += 3) Reserve(new Vector3(0f, 0f, z), 3.2f);  // the main road
+            for (int x = -12; x <= 12; x += 3) Reserve(new Vector3(x, 0f, 5.8f), 2.4f); // the yurt approach
             Vector3[] route = { new(0, 0, -22), new(-.2f, 0, -16), new(.15f, 0, -9), new(0, 0, -2), new(-.15f, 0, 5), new(.1f, 0, 12), new(0, 0, 22) };
             PathRibbon("Soft path verge", route, 2.02f, .052f, new Color(.78f, .76f, .52f), null);
             PathRibbon("Main earth path", route, 1.78f, .056f, Color.white, art != null ? art.path : null);
@@ -148,6 +168,14 @@ namespace ATTILA.Environment
             var banner = art != null ? art.Banner(Banner) : null;
             foreach (var position in new[] { new Vector3(-2.9f, 0, -6f), new Vector3(2.9f, 0, 2f), new Vector3(-2.9f, 0, 10f), new Vector3(2.9f, 0, 13.6f) })
                 WorldArt.Prop(banner, position, .5f);
+            YardProps(new[]
+            {
+                (new Vector3(-9.4f, 0f, 11.4f), "sandyq"), (new Vector3(-5.8f, 0f, -3.6f), "tandyr"),
+                (new Vector3(9.4f, 0f, 9.2f), "hay"), (new Vector3(-1.9f, 0f, -3.2f), "firewood"),
+                (new Vector3(13.6f, 0f, -6.6f), "sandyq"), (new Vector3(-13.8f, 0f, 3.2f), "hay")
+            });
+            River(23f, 1.5f);
+            Undergrowth(11, 4.5f, 25f, 120, 60);
         }
 
         // ------------------------------------------------------------ the open steppe
@@ -155,6 +183,12 @@ namespace ATTILA.Environment
         private void BuildSteppe()
         {
             Ground(34f);
+            reserved.Clear();
+            Reserve(new Vector3(0f, 0f, 16f), 4f);
+            Reserve(new Vector3(-6.5f, 0f, 10.5f), 5f);
+            Reserve(new Vector3(-4.2f, 0f, -4.4f), 3.5f);
+            Reserve(new Vector3(2.8f, 0f, 20.5f), 3.5f);
+            for (int z = -22; z <= 24; z += 3) Reserve(new Vector3(0f, 0f, z), 2.8f);
             Vector3[] trail = { new(0, 0, 24), new(1.5f, 0, 14), new(-1f, 0, 4), new(1f, 0, -8), new(0, 0, -22) };
             PathRibbon("Steppe trail", trail, 1.5f, .055f, Color.white, art != null ? art.path : null);
             Groves(new[] { new Vector3(-20, 0, 12), new Vector3(19, 0, 6), new Vector3(-16, 0, -12), new Vector3(15, 0, -16), new Vector3(-8, 0, 20) });
@@ -174,6 +208,9 @@ namespace ATTILA.Environment
             var banner = art != null ? art.Banner(Banner) : null;
             foreach (var position in new[] { new Vector3(-2.4f, 0, 18f), new Vector3(2.4f, 0, -18f) })
                 WorldArt.Prop(banner, position, .5f);
+            YardProps(new[] { (new Vector3(-8.2f, 0f, 11.6f), "hay"), (new Vector3(-5.6f, 0f, -5.8f), "firewood"), (new Vector3(-4.8f, 0f, 9.4f), "sandyq") });
+            River(24f, 4f);
+            Undergrowth(21, 5f, 27f, 130, 66);
         }
 
         // ------------------------------------------------------------ the city
@@ -181,6 +218,13 @@ namespace ATTILA.Environment
         private void BuildCity()
         {
             Ground(30f, art != null ? art.path : null);
+            reserved.Clear();
+            Reserve(new Vector3(0f, 0f, 12f), 8f);
+            Reserve(new Vector3(0f, 0f, 1f), 4f);
+            foreach (var spot in new[] { new Vector3(-9.5f, 0, 9.5f), new Vector3(9.5f, 0, 10f), new Vector3(-10.5f, 0, -6.5f), new Vector3(10.5f, 0, -7f) })
+                Reserve(spot, 6f);
+            for (int z = -16; z <= 14; z += 3) Reserve(new Vector3(0f, 0f, z), 3.4f);
+            for (int x = -11; x <= 11; x += 3) Reserve(new Vector3(x, 0f, 1.5f), 3f);
             PathRibbon("City street", new[] { new Vector3(0, 0, -16), new Vector3(0, 0, -4), new Vector3(0, 0, 6), new Vector3(0, 0, 14) }, 2.6f, .06f, new Color(.88f, .82f, .7f), art != null ? art.path : null);
             PathRibbon("Bazaar row", new[] { new Vector3(-11, 0, 1.5f), new Vector3(0, 0, 1.5f), new Vector3(11, 0, 1.5f) }, 2.2f, .062f, new Color(.88f, .82f, .7f), art != null ? art.path : null);
             Wall(new Vector3(0, 0, 16), new Vector3(34, 3.6f, 1.2f));
@@ -216,6 +260,8 @@ namespace ATTILA.Environment
             var banner = art != null ? art.Banner(Banner) : null;
             foreach (var position in new[] { new Vector3(-4.4f, 0, -14.6f), new Vector3(4.4f, 0, -14.6f), new Vector3(-3.2f, 0, 10f), new Vector3(3.2f, 0, 10f) })
                 WorldArt.Prop(banner, position, .5f);
+            YardProps(new[] { (new Vector3(-7.2f, 0f, 6.4f), "sandyq"), (new Vector3(7.6f, 0f, 6.2f), "sandyq"), (new Vector3(-12.6f, 0f, -2.4f), "tandyr"), (new Vector3(12.4f, 0f, -1.6f), "hay") });
+            Undergrowth(31, 4f, 14f, 60, 0);
         }
 
         /// <summary>The city's landmark: a clay mass with a glazed turquoise dome and a tall portal.</summary>
@@ -273,12 +319,151 @@ namespace ATTILA.Environment
                     .GetComponent<Renderer>().sharedMaterial = WorldArt.SharedFlat(new Color(.5f, .36f, .24f));
         }
 
+        // ------------------------------------------------------------ dressing the land
+
+        private readonly System.Collections.Generic.List<(Vector3 centre, float radius)> reserved = new();
+
+        private void Reserve(Vector3 centre, float radius) => reserved.Add((centre, radius));
+
+        private bool Free(Vector3 point, float radius)
+        {
+            foreach (var (centre, taken) in reserved)
+            {
+                float limit = taken + radius;
+                if ((new Vector2(centre.x - point.x, centre.z - point.z)).sqrMagnitude < limit * limit) return false;
+            }
+            return true;
+        }
+
+        /// <summary>Sprinkles decoration in a ring, skipping anything the gameplay has claimed.</summary>
+        private void Scatter(int count, float innerRadius, float outerRadius, int seed, System.Action<Vector3, System.Random> place)
+        {
+            var rng = new System.Random(seed);
+            for (int i = 0; i < count; i++)
+            {
+                for (int attempt = 0; attempt < 12; attempt++)
+                {
+                    float angle = (float)rng.NextDouble() * Mathf.PI * 2f;
+                    float radius = Mathf.Lerp(innerRadius, outerRadius, (float)rng.NextDouble());
+                    var point = new Vector3(Mathf.Cos(angle) * radius, 0f, Mathf.Sin(angle) * radius);
+                    if (!Free(point, 1.4f)) continue;
+                    place(point, rng);
+                    break;
+                }
+            }
+        }
+
+        /// <summary>Grass tufts and flowers close in, thickets and trees further out; the reference is a busy valley.</summary>
+        private void Undergrowth(int seed, float innerRadius, float outerRadius, int tufts, int thickets)
+        {
+            Scatter(tufts, innerRadius, outerRadius, seed, (point, rng) =>
+            {
+                double roll = rng.NextDouble();
+                var sprite = roll < .55 ? art?.tuft
+                    : art != null && art.flowers != null && art.flowers.Length > 0 ? art.flowers[rng.Next(art.flowers.Length)] : null;
+                WorldArt.Prop(sprite, point, 0f, rng.Next(2) == 0);
+            });
+            Scatter(thickets, Mathf.Max(innerRadius, 8f), outerRadius + 7f, seed + 1, (point, rng) =>
+            {
+                int roll = rng.Next(10);
+                var prefab = roll < 4 ? environmentArt.tree : roll < 6 ? environmentArt.smallTree : roll < 8 ? environmentArt.bush : environmentArt.smallBush;
+                Place(prefab, point, (float)rng.NextDouble() * 360f, .85f + (float)rng.NextDouble() * .4f);
+                if (roll < 6) Place(environmentArt.grass, point + new Vector3(1.3f, 0f, -.8f), (float)rng.NextDouble() * 360f);
+            });
+        }
+
+        /// <summary>The river along the eastern edge with a plank bridge, as in the reference valley.</summary>
+        private void River(float centreX, float gapZ)
+        {
+            var points = new Vector3[9];
+            for (int i = 0; i < points.Length; i++)
+            {
+                float z = -28f + i * 7f;
+                points[i] = new Vector3(centreX + Mathf.Sin(z * .12f) * 1.6f, 0f, z);
+            }
+            var bed = new Vector3[points.Length * 2];
+            var uv = new Vector2[points.Length * 2];
+            var triangles = new int[(points.Length - 1) * 6];
+            float travelled = 0f;
+            for (int i = 0; i < points.Length; i++)
+            {
+                if (i > 0) travelled += Vector3.Distance(points[i], points[i - 1]);
+                bed[i * 2] = points[i] + new Vector3(-3.2f, .04f, 0f);
+                bed[i * 2 + 1] = points[i] + new Vector3(3.2f, .04f, 0f);
+                uv[i * 2] = new Vector2(0f, travelled * .18f);
+                uv[i * 2 + 1] = new Vector2(1f, travelled * .18f);
+                if (i == points.Length - 1) continue;
+                int a = i * 2, t = i * 6;
+                triangles[t] = a; triangles[t + 1] = a + 2; triangles[t + 2] = a + 1;
+                triangles[t + 3] = a + 1; triangles[t + 4] = a + 2; triangles[t + 5] = a + 3;
+            }
+            var water = WorldArt.Mesh("River", null, bed, uv, triangles, Color.white, art != null ? art.water : null);
+            water.AddComponent<ScrollTexture>().Configure(new Vector2(0f, -.06f));
+            foreach (var point in points)
+            {
+                Place(environmentArt.rock, point + new Vector3(-4.2f, 0f, 1.5f), point.z * 11f, .7f);
+                Place(environmentArt.smallRock, point + new Vector3(4.1f, 0f, -1.2f), point.z * 7f, .8f);
+                Place(environmentArt.grass, point + new Vector3(-3.9f, 0f, -2.4f), point.z * 5f);
+            }
+            // The plank bridge is the only way across; the banks are blocked either side of it.
+            for (int i = -3; i <= 3; i++)
+            {
+                var plank = WorldArt.Primitive(PrimitiveType.Cube, "Plank", new Vector3(centreX + i * 1.2f, .12f, gapZ), new Vector3(1.05f, .18f, 6.4f));
+                plank.GetComponent<Renderer>().sharedMaterial = WorldArt.SharedFlat(i % 2 == 0 ? new Color(.58f, .42f, .26f) : new Color(.66f, .48f, .3f));
+            }
+            foreach (float side in new[] { -3.1f, 3.1f })
+            {
+                var rail = WorldArt.Primitive(PrimitiveType.Cube, "Rail", new Vector3(centreX + side, .9f, gapZ), new Vector3(.2f, .2f, 6.4f));
+                rail.GetComponent<Renderer>().sharedMaterial = WorldArt.SharedFlat(new Color(.5f, .35f, .22f));
+                for (int i = -1; i <= 1; i++)
+                    WorldArt.Primitive(PrimitiveType.Cube, "Post", new Vector3(centreX + side, .5f, gapZ + i * 2.8f), new Vector3(.22f, 1f, .22f))
+                        .GetComponent<Renderer>().sharedMaterial = WorldArt.SharedFlat(new Color(.45f, .31f, .2f));
+            }
+            foreach (float z in new[] { gapZ + 12f, gapZ - 12f })
+            {
+                var block = WorldArt.Primitive(PrimitiveType.Cube, "River", new Vector3(centreX, 1f, z), new Vector3(6.4f, 2f, 18f));
+                block.GetComponent<Renderer>().enabled = false;
+            }
+        }
+
+        /// <summary>Everyday things standing around a camp: chest, tandyr, hay, firewood by the fire.</summary>
+        private void YardProps((Vector3 position, string kind)[] items)
+        {
+            foreach (var (position, kind) in items)
+            {
+                var sprite = kind switch
+                {
+                    "sandyq" => art?.sandyq,
+                    "tandyr" => art?.tandyr,
+                    "hay" => art?.hay,
+                    _ => art?.Prop("firewood")
+                };
+                var prop = WorldArt.Prop(sprite, position, kind == "hay" ? 1.6f : 1f);
+                if (kind != "firewood") Solid(prop, new Vector3(1.2f, 1.2f, .9f));
+                Reserve(position, 1.6f);
+            }
+        }
+
         // ------------------------------------------------------------ shared pieces
 
         private void Ground(float tiling, Texture2D texture = null)
         {
-            var ground = WorldArt.Primitive(PrimitiveType.Plane, "Ground", Vector3.zero, new Vector3(5.5f, 1, 5.5f));
+            // Wide enough that the camera never sees past it, even with the player standing at the world edge.
+            const float scale = 10f;
+            tiling *= scale / 5.5f;
+            var ground = WorldArt.Primitive(PrimitiveType.Plane, "Ground", Vector3.zero, new Vector3(scale, 1, scale));
             ground.GetComponent<Renderer>().sharedMaterial = WorldArt.Textured(texture != null ? texture : art != null ? art.ground : null, new Vector2(tiling, tiling), Color.white);
+        }
+
+        /// <summary>Invisible walls around every place, so nobody can walk off the ground; the far river bank stays reachable.</summary>
+        private static void WorldEdges()
+        {
+            foreach (var (centre, size) in new[]
+                     {
+                         (new Vector3(2f, 1f, 25.5f), new Vector3(56f, 4f, 1f)), (new Vector3(2f, 1f, -25.5f), new Vector3(56f, 4f, 1f)),
+                         (new Vector3(-25.5f, 1f, 0f), new Vector3(1f, 4f, 52f)), (new Vector3(29.5f, 1f, 0f), new Vector3(1f, 4f, 52f))
+                     })
+                WorldArt.Primitive(PrimitiveType.Cube, "World edge", centre, size).GetComponent<Renderer>().enabled = false;
         }
 
         private void Groves(Vector3[] groves)

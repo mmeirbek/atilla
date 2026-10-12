@@ -28,6 +28,7 @@ namespace ATTILA.UI
             var go = new GameObject(name, typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
             var canvas = go.GetComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             var scaler = go.GetComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.referenceResolution = new Vector2(1280, 720);
+            go.AddComponent<SafeArea>();
             return canvas;
         }
         public static Text Text(Transform parent, string value, int size, TextAnchor alignment, Color color)
@@ -38,8 +39,23 @@ namespace ATTILA.UI
             text.font = font != null ? font : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             text.fontSize = font != null ? SnapToPixelGrid(size) : size;
             text.text = value; text.alignment = alignment; text.color = color; text.horizontalOverflow = HorizontalWrapMode.Wrap; text.verticalOverflow = VerticalWrapMode.Overflow;
+            // The pixel font has no built-in leading, so wrapped lines would otherwise touch.
+            text.lineSpacing = 1.3f;
             return text;
         }
+        /// <summary>Steps a single-line label down the pixel grid until it fits its width; runtime text varies in length.</summary>
+        public static void ShrinkToFit(Text text, int designSize)
+        {
+            int size = text.font != null && text.font.name.Contains("PressStart") ? SnapToPixelGrid(designSize) : designSize;
+            text.fontSize = size;
+            float width = text.rectTransform.rect.width;
+            while (size > MinimumPixelSize && text.preferredWidth > width)
+            {
+                size -= PixelGrid;
+                text.fontSize = size;
+            }
+        }
+
         public static Image Panel(Transform parent, Color color)
         {
             var go = new GameObject("Panel", typeof(Image)); go.transform.SetParent(parent, false); var image = go.GetComponent<Image>(); image.color = color; return image;

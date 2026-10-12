@@ -7,7 +7,7 @@ namespace ATTILA.UI
 {
     public sealed class MainMenuScreen : MonoBehaviour
     {
-        private static readonly Vector2 MenuButtonSize = new Vector2(720, 148);
+        private static readonly Vector2 MenuButtonSize = new Vector2(860, 176);
 
         private void Start()
         {
@@ -17,10 +17,10 @@ namespace ATTILA.UI
             var visuals = Resources.Load<MenuVisualDefinition>("UI/MainMenuVisuals");
             CreateLogo(canvas.transform, visuals);
             PlayButton(canvas.transform, visuals);
-            ArtButton(canvas.transform, "ГАРДЕРОБ Provided Pixel Button", visuals != null ? visuals.wardrobeButton : null, .455f, MenuButtonSize, () => WardrobeScreen.Show(canvas.transform));
-            ArtButton(canvas.transform, "ЭНЦИКЛОПЕДИЯ Provided Pixel Button", visuals != null ? visuals.encyclopediaButton : null, .325f, MenuButtonSize, () => EncyclopediaScreen.Show(canvas.transform));
-            ArtButton(canvas.transform, "БАПТАУЛАР Provided Pixel Button", visuals != null ? visuals.settingsButton : null, .195f, MenuButtonSize, () => SettingsScreen.Show(canvas.transform));
-            ArtButton(canvas.transform, "ШЫҒУ Provided Pixel Button", visuals != null ? visuals.quitButton : null, .065f, MenuButtonSize, QuitSafely);
+            ArtButton(canvas.transform, "ГАРДЕРОБ Provided Pixel Button", visuals != null ? visuals.wardrobeButton : null, .475f, MenuButtonSize, () => WardrobeScreen.Show(canvas.transform));
+            ArtButton(canvas.transform, "ЭНЦИКЛОПЕДИЯ Provided Pixel Button", visuals != null ? visuals.encyclopediaButton : null, .35f, MenuButtonSize, () => EncyclopediaScreen.Show(canvas.transform));
+            ArtButton(canvas.transform, "БАПТАУЛАР Provided Pixel Button", visuals != null ? visuals.settingsButton : null, .225f, MenuButtonSize, () => SettingsScreen.Show(canvas.transform));
+            ArtButton(canvas.transform, "ШЫҒУ Provided Pixel Button", visuals != null ? visuals.quitButton : null, .1f, MenuButtonSize, QuitSafely);
         }
 
         private static void PlayButton(Transform root, MenuVisualDefinition visuals)
@@ -36,7 +36,7 @@ namespace ATTILA.UI
                 var button = go.GetComponent<Button>();
                 button.targetGraphic = image;
                 button.onClick.AddListener(() => SceneLoader.Load(SceneId.CharacterSelect));
-                UiFactory.SetRect(image.rectTransform, new Vector2(.5f, .585f), MenuButtonSize, Vector2.zero);
+                UiFactory.SetRect(image.rectTransform, new Vector2(.5f, .6f), MenuButtonSize, Vector2.zero);
                 return;
             }
             CreateButton(root, "ОЙНАУ", .525f, new Vector2(560, 82), () => SceneLoader.Load(SceneId.CharacterSelect));

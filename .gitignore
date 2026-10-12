@@ -12,3 +12,7 @@ BatchBuild.log
 *.pdb
 *.opendb
 *.VC.db
+
+# Build output
+/[Bb]uilds/
+/Data/

@@ -23,6 +23,12 @@ namespace ATTILA.Data
     /// <summary>Draft is the default so no text reads as historically confirmed until someone verifies it against a source.</summary>
     public enum ContentStatus { Draft, Verified }
 
+    /// <summary>Whether screens print the "source under review" mark. Off for public showings; Draft status and source notes stay in the data.</summary>
+    public static class ContentReview
+    {
+        public static bool ShowDraftMarks;
+    }
+
     [Serializable]
     public sealed class NpcDefinition
     {
@@ -139,6 +145,7 @@ namespace ATTILA.Data
         public string roleId;
         public string title;
         public string subtitle;
+        [Tooltip("One or two sentences on the title card that opens the chapter.")] [TextArea] public string intro;
         public List<NpcPlacement> npcs = new();
         public List<BeatDefinition> beats = new();
         public string finaleTitle;

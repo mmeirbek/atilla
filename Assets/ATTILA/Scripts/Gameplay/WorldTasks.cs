@@ -51,10 +51,24 @@ namespace ATTILA.Gameplay
 
         protected void Report() => StoryDirector.Active.Ui.SetMinigameStatus(Status());
 
+        /// <summary>Sparks, a rising line and a small jolt where something was picked up or set down.</summary>
+        protected static void Celebrate(Vector3 at, string line, bool big = false)
+        {
+            var overlay = (RectTransform)StoryDirector.Active.Ui.OverlayRoot;
+            var screen = UI.MinigameFx.WorldToOverlay(overlay, at + Vector3.up * 1.2f);
+            UI.MinigameFx.Burst(overlay, screen, UI.MenuUiKit.Gold, big ? 26 : 12, big ? 700f : 420f);
+            UI.MinigameFx.Popup(overlay, screen + new Vector2(0, 60), line, UI.MenuUiKit.Gold, big ? 56 : 44);
+            UI.MinigameFx.ShakeCamera(big ? .25f : .1f, big ? .35f : .15f);
+        }
+
         protected static float Flat(Vector3 a, Vector3 b) => Vector2.Distance(new Vector2(a.x, a.z), new Vector2(b.x, b.z));
+
+        /// <summary>Points the ground arrows at the next thing this task wants.</summary>
+        protected void Aim(Vector3? target) => UI.GuideArrows.TaskTarget = target;
 
         protected void Finish()
         {
+            UI.GuideArrows.TaskTarget = null;
             var ui = StoryDirector.Active.Ui;
             ui.HideMinigame();
             AudioService.Play(Sfx.Reward, .8f);
@@ -95,10 +109,20 @@ namespace ATTILA.Gameplay
 
         protected override void Tick(Vector3 playerPosition)
         {
+            Vector3? closest = null;
+            float best = float.MaxValue;
+            foreach (var item in items)
+            {
+                if (item == null) continue;
+                float distance = Flat(item.transform.position, playerPosition);
+                if (distance < best) { best = distance; closest = item.transform.position; }
+            }
+            Aim(closest);
             for (int i = items.Count - 1; i >= 0; i--)
             {
                 if (items[i] == null) { items.RemoveAt(i); continue; }
                 if (Flat(items[i].transform.position, playerPosition) > 1.5f) continue;
+                Celebrate(items[i].transform.position, $"+1  {Mathf.Min(taken + 1, Task.required)}/{Task.required}");
                 Destroy(items[i]);
                 items.RemoveAt(i);
                 taken++;
@@ -130,6 +154,7 @@ namespace ATTILA.Gameplay
         protected override void Tick(Vector3 playerPosition)
         {
             if (target == null) { Finish(); return; }
+            Aim(distance < 14f ? target.transform.position : null);
             float previous = distance;
             distance = Flat(target.transform.position, playerPosition);
             if (targetRenderer != null) targetRenderer.enabled = distance < 6f;
@@ -137,6 +162,7 @@ namespace ATTILA.Gameplay
             if (distance < 1.8f)
             {
                 StoryDirector.Active.Ui.ShowToast("ТАБЫЛДЫ: " + Task.itemLabel);
+                Celebrate(target.transform.position, "ТАБЫЛДЫ!", true);
                 Finish();
             }
         }
@@ -169,6 +195,7 @@ namespace ATTILA.Gameplay
         protected override void Tick(Vector3 playerPosition)
         {
             if (horse == null) { Finish(); return; }
+            Aim(new Vector3(Task.goal.x, 0f, Task.goal.y));
             var position = horse.transform.position;
             float toPlayer = Flat(position, playerPosition);
             if (toPlayer < 9f && toPlayer > 2.4f)
@@ -184,6 +211,7 @@ namespace ATTILA.Gameplay
             if (Flat(position, new Vector3(Task.goal.x, 0f, Task.goal.y)) < 2.4f)
             {
                 StoryDirector.Active.Ui.ShowToast("АТ БАЙЛАНДЫ");
+                Celebrate(new Vector3(Task.goal.x, 1f, Task.goal.y), "АТ БАЙЛАНДЫ!", true);
                 Finish();
             }
         }
@@ -230,6 +258,8 @@ namespace ATTILA.Gameplay
 
         protected override void Tick(Vector3 playerPosition)
         {
+            Aim(carried != null ? new Vector3(Task.goal.x, 0f, Task.goal.y)
+                : placed < parts.Count && parts[placed] != null ? parts[placed].transform.position : (Vector3?)null);
             if (carried == null)
             {
                 for (int i = 0; i < parts.Count; i++)
@@ -255,6 +285,7 @@ namespace ATTILA.Gameplay
                     placed++;
                     site.SetStage(placed);
                     AudioService.Play(Sfx.Hit, .6f, 1.2f);
+                    Celebrate(new Vector3(Task.goal.x, 1f, Task.goal.y), placed >= parts.Count ? "КИІЗ ҮЙ ДАЙЫН!" : $"{placed}/{parts.Count}", placed >= parts.Count);
                     StoryDirector.Active.Ui.ShowToast(placed >= parts.Count ? "КИІЗ ҮЙ ТІГІЛДІ" : "БӨЛІК ОРНЫНА ҚОЙЫЛДЫ", 2f);
                     Report();
                     if (placed >= parts.Count) Finish();

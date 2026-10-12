@@ -220,48 +220,53 @@ namespace ATTILA.Editor
                     break;
                 case 2:
                     CheckWorld();
+                    Capture($"03-{role}-0-intro");
+                    Director.Ui.SkipIntro();
+                    Require(!Director.IsModal, "Title card hands control to the player");
+                    break;
+                case 3:
                     Capture($"03-{role}-aul");
                     Go(LocationId.Steppe);
                     break;
-                case 3:
+                case 4:
                     Capture($"03b-{role}-steppe");
                     Go(LocationId.City);
                     break;
-                case 4:
+                case 5:
                     Capture($"03c-{role}-city");
                     Go(LocationId.Aul);
                     break;
-                case 5:
+                case 6:
                     Talk();
                     break;
-                case 6:
+                case 7:
                     Capture($"04-{role}-dialogue");
                     Skip();
                     break;
-                case 7:
+                case 8:
                     Capture($"05-{role}-dialogue-choice");
                     Skip();
                     break;
-                case 8:
+                case 9:
                     Require(Director.Quest.BeatIndex > 0 || Director.Ui.DialogueActive, "First beat progresses after the dialogue");
                     StartTask();
                     break;
-                case 9:
+                case 10:
                     Capture($"05b-{role}-task");
                     Close();
                     Screens();
                     break;
-                case 10:
+                case 11:
                     Capture($"06-{role}-campfire");
                     Close();
                     MapScreen.Show(Director.Ui.OverlayRoot, FindMap(), () => { });
                     break;
-                case 11:
+                case 12:
                     Capture($"07-{role}-map");
                     Close();
                     Minigame();
                     break;
-                case 12:
+                case 13:
                     Capture($"08-{role}-minigame");
                     Close();
                     // Open a couple of entries so the screenshot shows both states.
@@ -269,22 +274,30 @@ namespace ATTILA.Editor
                     SaveService.Unlock("sokyr_teke");
                     EncyclopediaScreen.Show(Director.Ui.OverlayRoot);
                     break;
-                case 13:
+                case 14:
                     Capture($"09-{role}-encyclopedia");
                     Close();
                     WardrobeScreen.Show(Director.Ui.OverlayRoot);
                     break;
-                case 14:
+                case 15:
                     Capture($"10-{role}-wardrobe");
                     Close();
                     SettingsScreen.Show(Director.Ui.OverlayRoot);
                     break;
-                case 15:
+                case 16:
                     Capture($"11-{role}-settings");
                     Close();
-                    Director.Ui.ShowFinale(Director.Chapter, Director.Chapter.finaleText, 320, 2, () => { }, () => { }, () => { });
+                    // The presenter key walks the whole chapter, riding between places, until the game shows its own finale.
+                    if (!Director.Quest.IsComplete)
+                    {
+                        Director.PresenterSkip();
+                        phase--;
+                        break;
+                    }
+                    Require(Director.Quest.IsComplete, "Presenter key completes the chapter");
+                    next = EditorApplication.timeSinceStartup + 4.5;   // finale is invoked after a beat, then fades and counts
                     break;
-                case 16:
+                case 17:
                     Capture($"12-{role}-finale");
                     Close();
                     role++;
@@ -303,6 +316,7 @@ namespace ATTILA.Editor
         private static void StartRole()
         {
             SaveService.SelectHero(HeroCatalog.Order[role]);
+            SaveService.RestartRole(HeroCatalog.Order[role]);   // the walk-through below completes every chapter
             SceneManager.LoadScene("AulPrototype");
         }
 
