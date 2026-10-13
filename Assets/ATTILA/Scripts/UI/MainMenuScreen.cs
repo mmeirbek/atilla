@@ -20,7 +20,7 @@ namespace ATTILA.UI
             ArtButton(canvas.transform, "ГАРДЕРОБ Provided Pixel Button", visuals != null ? visuals.wardrobeButton : null, .475f, MenuButtonSize, () => WardrobeScreen.Show(canvas.transform));
             ArtButton(canvas.transform, "ЭНЦИКЛОПЕДИЯ Provided Pixel Button", visuals != null ? visuals.encyclopediaButton : null, .35f, MenuButtonSize, () => EncyclopediaScreen.Show(canvas.transform));
             ArtButton(canvas.transform, "БАПТАУЛАР Provided Pixel Button", visuals != null ? visuals.settingsButton : null, .225f, MenuButtonSize, () => SettingsScreen.Show(canvas.transform));
-            ArtButton(canvas.transform, "ШЫҒУ Provided Pixel Button", visuals != null ? visuals.quitButton : null, .1f, MenuButtonSize, QuitSafely);
+            ArtButton(canvas.transform, "ШЫҒУ Provided Pixel Button", visuals != null ? visuals.quitButton : null, .1f, MenuButtonSize, () => ConfirmQuit(canvas.transform));
         }
 
         private static void PlayButton(Transform root, MenuVisualDefinition visuals)
@@ -88,6 +88,23 @@ namespace ATTILA.UI
             UiFactory.SetRect(image.rectTransform, new Vector2(.5f, y), size, Vector2.zero);
         }
 
+        /// <summary>One stray click must not close the game in front of an audience, so leaving asks first.</summary>
+        private static void ConfirmQuit(Transform root)
+        {
+            var host = new GameObject("Quit Confirmation", typeof(RectTransform));
+            host.transform.SetParent(root, false);
+            UiFactory.Stretch((RectTransform)host.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            var veil = UiFactory.Panel(host.transform, new Color(.06f, .03f, .03f, .78f));
+            UiFactory.Stretch(veil.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            var frame = GameUiKit.InkPanel(host.transform, new Vector2(.5f, .5f), new Vector2(980, 400), Vector2.zero);
+            GameUiKit.Label(frame.Content, "ОЙЫННАН ШЫҒАСЫЗ БА?", 40, MenuUiKit.Gold, TextAnchor.UpperCenter, 40, 70, 900, 60);
+            var stay = MenuPixelButton.Create(frame.Content, "ЖОҚ", () => Object.Destroy(host));
+            UiFactory.SetRect(stay.GetComponent<RectTransform>(), new Vector2(.3f, .26f), new Vector2(380, 108), Vector2.zero);
+            var leave = MenuPixelButton.Create(frame.Content, "ИӘ, ШЫҒУ", QuitSafely);
+            UiFactory.SetRect(leave.GetComponent<RectTransform>(), new Vector2(.7f, .26f), new Vector2(380, 108), Vector2.zero);
+            host.AddComponent<CloseOnEscape>();
+        }
+
         private static void QuitSafely()
         {
 #if UNITY_EDITOR
@@ -95,6 +112,15 @@ namespace ATTILA.UI
 #else
             Application.Quit();
 #endif
+        }
+    }
+
+    /// <summary>Esc answers "no" to the quit question.</summary>
+    public sealed class CloseOnEscape : MonoBehaviour
+    {
+        private void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.Escape)) Destroy(gameObject);
         }
     }
 }
