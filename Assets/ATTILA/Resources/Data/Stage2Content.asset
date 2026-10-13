@@ -939,10 +939,10 @@ MonoBehaviour:
         - shanyrak
         - felt
         points:
-        - {x: -11.5, y: 2.6}
-        - {x: -5.4, y: -4.2}
-        - {x: -10.8, y: -1.8}
-        - {x: -5.6, y: 3.4}
+        - {x: -14, y: -1.6}
+        - {x: -8, y: -5.6}
+        - {x: -3.2, y: 3.2}
+        - {x: -2.6, y: -5.6}
         goal: {x: -8.4, y: 0.4}
         required: 4
         itemLabel: "\u0411\u04E9\u043B\u0456\u043A"

@@ -35,7 +35,12 @@ namespace ATTILA.UI
         private static IEnumerator CountdownRoutine(Transform host, Action done)
         {
             var root = Layer(host, "Countdown");
-            var text = BigText(root, string.Empty, 120, MenuUiKit.Cream);
+            // A dark disc behind the number keeps it readable over bright grass and the blindfold dark alike.
+            var disc = UiFactory.Panel(root, new Color(.1f, .05f, .04f, .75f));
+            disc.raycastTarget = false;
+            disc.sprite = Environment.MvpArtSet.Instance != null ? Environment.MvpArtSet.Instance.glow : null;
+            UiFactory.SetRect(disc.rectTransform, new Vector2(.5f, .5f), new Vector2(560, 400), Vector2.zero);
+            var text = BigText(root, string.Empty, 200, MenuUiKit.Cream);
             string[] steps = { "3", "2", "1", "БАСТА!" };
             for (int i = 0; i < steps.Length; i++)
             {
@@ -50,7 +55,9 @@ namespace ATTILA.UI
                     if (root == null) yield break;
                     float pop = 1f + .9f * Mathf.Pow(1f - Mathf.Clamp01(t * 3f), 2f);
                     text.rectTransform.localScale = Vector3.one * pop;
-                    text.color = new Color(text.color.r, text.color.g, text.color.b, t < .7f ? 1f : 1f - (t - .7f) / .3f);
+                    float fade = t < .7f ? 1f : 1f - (t - .7f) / .3f;
+                    text.color = new Color(text.color.r, text.color.g, text.color.b, fade);
+                    disc.color = new Color(.1f, .05f, .04f, .75f * (last ? fade : 1f));
                     yield return null;
                 }
             }
@@ -320,8 +327,8 @@ namespace ATTILA.UI
             text.horizontalOverflow = HorizontalWrapMode.Overflow;
             var outline = text.gameObject.AddComponent<Outline>();
             outline.effectColor = new Color(.15f, .07f, .05f, 1f);
-            outline.effectDistance = new Vector2(6, -6);
-            UiFactory.SetRect(text.rectTransform, new Vector2(.5f, .5f), new Vector2(1600, 200), Vector2.zero);
+            outline.effectDistance = new Vector2(4, -4);
+            UiFactory.SetRect(text.rectTransform, new Vector2(.5f, .5f), new Vector2(1600, 260), Vector2.zero);
             return text;
         }
     }

@@ -46,7 +46,7 @@ namespace ATTILA.UI
         {
             if (visuals != null && visuals.logo != null)
             {
-                var go = new GameObject("ATTILA Pixel Logo", typeof(Image));
+                var go = new GameObject("SANLAQ Logo", typeof(Image));
                 go.transform.SetParent(root, false);
                 var image = go.GetComponent<Image>();
                 image.sprite = visuals.logo;
@@ -57,11 +57,11 @@ namespace ATTILA.UI
                 UiFactory.SetRect(image.rectTransform, new Vector2(.5f, .82f), new Vector2(1750, 400), Vector2.zero);
                 return;
             }
-            var fallback = new GameObject("ATTILA Pixel Logo Fallback", typeof(PixelWordmark)).GetComponent<PixelWordmark>();
+            var fallback = new GameObject("SANLAQ Logo Fallback", typeof(PixelWordmark)).GetComponent<PixelWordmark>();
             fallback.transform.SetParent(root, false);
             fallback.color = MenuUiKit.Gold;
             fallback.raycastTarget = false;
-            fallback.SetValue("ATTILA");
+            fallback.SetValue("SANLAQ");
             UiFactory.SetRect(fallback.rectTransform, new Vector2(.5f, .775f), new Vector2(1600, 450), Vector2.zero);
         }
 

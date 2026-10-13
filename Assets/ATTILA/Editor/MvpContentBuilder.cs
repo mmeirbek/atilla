@@ -202,7 +202,8 @@ namespace ATTILA.Editor
             chapter.beats.Add(TaskBeat("NPC_HERDER", "Малшымен киіз үй тік", "DIA_K_HERDER", 80, "KEREY_YURT", BeatAction.Build,
                 Job("КИІЗ ҮЙ ТІГУ", "Бөліктерді ретімен апар: кереге, уық, шаңырақ, киіз.", "Бөлік",
                     new[] { "kerege", "uyk", "shanyrak", "felt" },
-                    new[] { new Vector2(-11.5f, 2.6f), new Vector2(-5.4f, -4.2f), new Vector2(-10.8f, -1.8f), new Vector2(-5.6f, 3.4f) }, 4, new Vector2(-8.4f, .4f)),
+                    // Parts lie in the open 5-8 m around the site, clear of the lattice once it stands and of the people nearby.
+                    new[] { new Vector2(-14f, -1.6f), new Vector2(-8f, -5.6f), new Vector2(-3.2f, 3.2f), new Vector2(-2.6f, -5.6f) }, 4, new Vector2(-8.4f, .4f)),
                 "kiiz_ui"));
             chapter.beats.Add(Beat("NPC_CHILDREN", "Балалармен «Соқыр теке» ойна", "DIA_K_CHILDREN", 100, "KEREY_GAME", BeatAction.SokyrTeke, "sokyr_teke"));
             var night = Beat("NPC_ELDER", "Кешкі от басына бар", "DIA_K_ELDER", 50, "KEREY_NIGHT", BeatAction.Campfire);

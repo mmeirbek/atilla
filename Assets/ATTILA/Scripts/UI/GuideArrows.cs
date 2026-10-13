@@ -8,23 +8,31 @@ namespace ATTILA.UI
 {
     /// <summary>
     /// Lays a short trail of arrows on the ground in front of the player, pointing at whatever the current beat
-    /// wants: the NPC, the travel cart or the next task point. They fade out once the target is close.
+    /// wants: the NPC, the travel cart or the next task point. The arrows stand still on the ground and a soft
+    /// wave of light runs along them toward the goal; they turn smoothly and fade out once the target is close.
     /// </summary>
     public sealed class GuideArrows : MonoBehaviour
     {
         private const int Count = 4;
-        private const float Spacing = 2.1f;
-        private const float HideDistance = 4.5f;
+        private const float FirstGap = 1.6f;      // from the player's feet to the first arrow
+        private const float Spacing = 1.3f;
+        private const float HideDistance = 3.5f;
+        private const float WaveSeconds = 1.4f;   // one sweep of light along the whole trail
+        private const float GroundHeight = .1f;     // just above the path ribbons, so roads never hide the arrows
 
         private readonly SpriteRenderer[] arrows = new SpriteRenderer[Count];
         private Transform player;
         private float pulse;
+        private Vector3 heading;
+        private float visibility;
 
         /// <summary>Set by a running world task so the arrows point at the next pickup or the site.</summary>
         public static Vector3? TaskTarget { get; set; }
 
         private void Start()
         {
+            // A target left by a job in a scene that has since been reloaded must not steer the new one.
+            TaskTarget = null;
             var art = MvpArtSet.Instance;
             for (int i = 0; i < Count; i++)
             {
@@ -65,31 +73,41 @@ namespace ATTILA.UI
                 player = controller.transform;
             }
             var target = Target();
-            if (!target.HasValue)
+            var from = new Vector3(player.position.x, GroundHeight, player.position.z);
+            float distance = 0f;
+            if (target.HasValue)
+            {
+                var direction = new Vector3(target.Value.x, GroundHeight, target.Value.z) - from;
+                distance = direction.magnitude;
+                if (distance > .01f)
+                {
+                    direction /= distance;
+                    // Turn toward a new direction over a moment instead of snapping, so the trail never flickers.
+                    heading = heading.sqrMagnitude < .01f ? direction : Vector3.Slerp(heading, direction, Time.deltaTime * 6f).normalized;
+                }
+            }
+            bool show = target.HasValue && distance > HideDistance;
+            visibility = Mathf.MoveTowards(visibility, show ? 1f : 0f, Time.deltaTime * 3f);
+            if (visibility <= 0f || heading.sqrMagnitude < .01f)
             {
                 foreach (var arrow in arrows) arrow.enabled = false;
                 return;
             }
-            var from = player.position;
-            var direction = target.Value - from;
-            direction.y = 0f;
-            float distance = direction.magnitude;
-            if (distance < HideDistance)
-            {
-                foreach (var arrow in arrows) arrow.enabled = false;
-                return;
-            }
-            pulse += Time.deltaTime * 1.6f;
-            direction.Normalize();
-            float angle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg;
+            pulse = Mathf.Repeat(pulse + Time.deltaTime / WaveSeconds, 1f);
+            float angle = Mathf.Atan2(heading.x, heading.z) * Mathf.Rad2Deg;
             for (int i = 0; i < arrows.Length; i++)
             {
-                float travel = Mathf.Repeat(pulse + i * (1f / arrows.Length), 1f);
-                float reach = Mathf.Min(distance - 1.5f, 2f + travel * Spacing * arrows.Length);
-                arrows[i].enabled = true;
-                arrows[i].transform.position = from + direction * reach + Vector3.up * .06f;
+                float reach = FirstGap + i * Spacing;
+                // Arrows past the goal are not drawn; the trail shortens as the player closes in.
+                bool inside = !target.HasValue || reach < distance - 1.2f;
+                arrows[i].enabled = inside;
+                if (!inside) continue;
+                float place = (i + .5f) / arrows.Length;
+                float wave = Mathf.Clamp01(1f - Mathf.Abs(Mathf.Repeat(pulse - place + .5f, 1f) - .5f) * 3f);
+                arrows[i].transform.position = from + heading * reach;
                 arrows[i].transform.rotation = Quaternion.Euler(90f, angle, 0f);
-                arrows[i].color = new Color(1f, .86f, .48f, Mathf.Sin(travel * Mathf.PI) * .85f);
+                arrows[i].transform.localScale = Vector3.one * (1f + wave * .18f);
+                arrows[i].color = new Color(1f, .86f, .48f, (.35f + wave * .6f) * visibility);
             }
         }
     }

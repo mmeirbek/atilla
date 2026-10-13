@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace ATTILA.UI
 {
-    /// <summary>Small, code-drawn pixel wordmark used for the temporary ATTILA logo.</summary>
+    /// <summary>Small, code-drawn pixel wordmark used when the SANLAQ logo image is missing.</summary>
     public sealed class PixelWordmark : Graphic
     {
         private const int GlyphWidth = 5;
@@ -15,10 +15,13 @@ namespace ATTILA.UI
             ['A'] = new[] { "01110", "10001", "10001", "11111", "10001", "10001", "10001" },
             ['I'] = new[] { "11111", "00100", "00100", "00100", "00100", "00100", "11111" },
             ['L'] = new[] { "10000", "10000", "10000", "10000", "10000", "10000", "11111" },
-            ['T'] = new[] { "11111", "00100", "00100", "00100", "00100", "00100", "00100" }
+            ['T'] = new[] { "11111", "00100", "00100", "00100", "00100", "00100", "00100" },
+            ['S'] = new[] { "01111", "10000", "10000", "01110", "00001", "00001", "11110" },
+            ['N'] = new[] { "10001", "11001", "10101", "10011", "10001", "10001", "10001" },
+            ['Q'] = new[] { "01110", "10001", "10001", "10001", "10101", "10010", "01101" }
         };
 
-        [SerializeField] private string value = "ATTILA";
+        [SerializeField] private string value = "SANLAQ";
 
         public void SetValue(string newValue)
         {

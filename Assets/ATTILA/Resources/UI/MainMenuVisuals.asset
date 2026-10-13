@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: MainMenuVisuals
   m_EditorClassIdentifier: Assembly-CSharp::ATTILA.UI.MenuVisualDefinition
   background: {fileID: 21300000, guid: 7ffb73ecabc636a41a0f7166d227d0c9, type: 3}
-  logo: {fileID: 21300000, guid: c27ed06d59c8e62458061f8ca46ad0c5, type: 3}
+  logo: {fileID: 21300000, guid: 73c4de85c4124780b1ad4acf5e8f8a97, type: 3}
   playButton: {fileID: 21300000, guid: c5b26c3ad97d6cb4bb46246de4e96956, type: 3}
   wardrobeButton: {fileID: 21300000, guid: a1b2c3d4e5f60718293a4b5c6d7e8f90, type: 3}
   encyclopediaButton: {fileID: 21300000, guid: b1c2d3e4f5061728394a5b6c7d8e9f01, type: 3}

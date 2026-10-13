@@ -287,6 +287,16 @@ namespace ATTILA.Editor
                 case 16:
                     Capture($"11-{role}-settings");
                     Close();
+                    playtest = 0;
+                    break;
+                case 17:
+                    // Every world job of the chapter, walked on foot by following the arrows.
+                    if (!StartPlaytest()) phase = 19;
+                    break;
+                case 18:
+                    if (WaitPlaytest()) phase = 18; else phase = 17;
+                    break;
+                case 19:
                     // The presenter key walks the whole chapter, riding between places, until the game shows its own finale.
                     if (!Director.Quest.IsComplete)
                     {
@@ -297,7 +307,7 @@ namespace ATTILA.Editor
                     Require(Director.Quest.IsComplete, "Presenter key completes the chapter");
                     next = EditorApplication.timeSinceStartup + 4.5;   // finale is invoked after a beat, then fades and counts
                     break;
-                case 17:
+                case 20:
                     Capture($"12-{role}-finale");
                     Close();
                     role++;
@@ -312,6 +322,71 @@ namespace ATTILA.Editor
         }
 
         private static StoryDirector Director => StoryDirector.Active;
+
+        // ------------------------------------------------------------ walking playtest
+
+        private static int playtest;
+        private static bool playtestDone;
+        private static double playtestStarted;
+        private static BeatDefinition playtestBeat;
+
+        private static BeatDefinition[] WorldJobs() => Director.Chapter.beats
+            .Where(b => b.action is BeatAction.Collect or BeatAction.Find or BeatAction.Escort or BeatAction.Build).ToArray();
+
+        /// <summary>Starts the next world job from where its NPC stands and lets the autopilot follow the arrows.</summary>
+        private static bool StartPlaytest()
+        {
+            var jobs = WorldJobs();
+            if (playtest >= jobs.Length) return false;
+            playtestBeat = jobs[playtest];
+            // Mini-games started for the screenshots would keep steering the player; they stop here.
+            foreach (var game in new MonoBehaviour[] { Director.GetComponent<BaigeMinigame>(), Director.GetComponent<SokyrTekeMinigame>() })
+                if (game != null) game.enabled = false;
+            Close();
+            if (AulPrototypeBuilder.Active.Current != playtestBeat.location) Go(playtestBeat.location);
+            var player = UnityEngine.Object.FindAnyObjectByType<PlayerController>();
+            player.SetInputEnabled(true);
+            player.SetSpeedMultiplier(1f);
+            player.GetComponent<PlayerVisual>().SetLift(0f);
+            var npc = UnityEngine.Object.FindObjectsByType<NpcInteractable>(FindObjectsInactive.Exclude, FindObjectsSortMode.None).FirstOrDefault(n => n.Id == playtestBeat.npcId);
+            var controller = player.GetComponent<CharacterController>();
+            controller.enabled = false;
+            player.transform.position = npc != null ? npc.transform.position + new Vector3(0f, 0f, -1.6f) : AulPrototypeBuilder.Spawn(playtestBeat.location);
+            controller.enabled = true;
+            Physics.SyncTransforms();
+            WorldTask task = playtestBeat.action switch
+            {
+                BeatAction.Collect => Director.gameObject.AddComponent<CollectTask>(),
+                BeatAction.Find => Director.gameObject.AddComponent<FindTask>(),
+                BeatAction.Escort => Director.gameObject.AddComponent<EscortTask>(),
+                _ => Director.gameObject.AddComponent<BuildTask>()
+            };
+            playtestDone = false;
+            playtestStarted = EditorApplication.timeSinceStartup;
+            task.Begin(playtestBeat.task, player, () => playtestDone = true);
+            var pilot = player.GetComponent<AutoPilot>() ?? player.gameObject.AddComponent<AutoPilot>();
+            pilot.Target = () => GuideArrows.TaskTarget;
+            return true;
+        }
+
+        /// <summary>True while the job is still being walked; fails the run if it cannot be finished in time.</summary>
+        private static bool WaitPlaytest()
+        {
+            double elapsed = EditorApplication.timeSinceStartup - playtestStarted;
+            if (!playtestDone)
+            {
+                if (elapsed < 120) return true;
+                Capture($"stuck-{role}-{playtestBeat.action}");
+                var stuckPilot = UnityEngine.Object.FindAnyObjectByType<AutoPilot>();
+                string why = stuckPilot != null && stuckPilot.NoRoute ? "no walkable route to " + GuideArrows.TaskTarget : "route walked but the job did not count it";
+                Require(false, $"{Director.Chapter.id}: {playtestBeat.action} job can be finished on foot ({why})");
+            }
+            Require(true, $"{Director.Chapter.id}: {playtestBeat.action} job finished on foot in {elapsed:0}s");
+            var pilot = UnityEngine.Object.FindAnyObjectByType<AutoPilot>();
+            if (pilot != null) UnityEngine.Object.DestroyImmediate(pilot);
+            playtest++;
+            return false;
+        }
 
         private static void StartRole()
         {

@@ -51,6 +51,27 @@ namespace ATTILA.Gameplay
 
         protected void Report() => StoryDirector.Active.Ui.SetMinigameStatus(Status());
 
+        /// <summary>A soft light on the ground under something the player should walk to; it breathes so it reads in grass.</summary>
+        protected GameObject Beacon(Vector3 position, float size = 1.6f)
+        {
+            var art = MvpArtSet.Instance;
+            var beacon = WorldArt.Decal(art != null ? art.glow : null, new Vector3(position.x, .08f, position.z), new Color(1f, .86f, .45f, .6f), size);
+            if (beacon != null) { beacon.AddComponent<Breathe>(); spawned.Add(beacon); }
+            return beacon;
+        }
+
+        private float nextNudge;
+
+        /// <summary>A short line over the player, at most once a second, for "not yet" moments.</summary>
+        protected void Nudge(string line)
+        {
+            if (Time.time < nextNudge) return;
+            nextNudge = Time.time + 1.2f;
+            AudioService.Play(Sfx.Fail, .4f, 1.2f);
+            var overlay = (RectTransform)StoryDirector.Active.Ui.OverlayRoot;
+            UI.MinigameFx.Popup(overlay, UI.MinigameFx.WorldToOverlay(overlay, Player.transform.position + Vector3.up * 2.4f), line, UI.MenuUiKit.Cream, 36);
+        }
+
         /// <summary>Sparks, a rising line and a small jolt where something was picked up or set down.</summary>
         protected static void Celebrate(Vector3 at, string line, bool big = false)
         {
@@ -101,9 +122,13 @@ namespace ATTILA.Gameplay
             for (int i = 0; i < Task.points.Length; i++)
             {
                 var item = Spawn(PropSprite(i), Task.points[i]);
-                if (item != null) items.Add(item);
+                if (item == null) continue;
+                items.Add(item);
+                beacons.Add(item, Beacon(item.transform.position));
             }
         }
+
+        private readonly Dictionary<GameObject, GameObject> beacons = new();
 
         protected override string Status() => $"{Task.itemLabel}: {taken}/{Mathf.Max(1, Task.required)}";
 
@@ -121,8 +146,9 @@ namespace ATTILA.Gameplay
             for (int i = items.Count - 1; i >= 0; i--)
             {
                 if (items[i] == null) { items.RemoveAt(i); continue; }
-                if (Flat(items[i].transform.position, playerPosition) > 1.5f) continue;
+                if (Flat(items[i].transform.position, playerPosition) > 1.9f) continue;
                 Celebrate(items[i].transform.position, $"+1  {Mathf.Min(taken + 1, Task.required)}/{Task.required}");
+                if (beacons.TryGetValue(items[i], out var beacon) && beacon != null) Destroy(beacon);
                 Destroy(items[i]);
                 items.RemoveAt(i);
                 taken++;
@@ -154,12 +180,13 @@ namespace ATTILA.Gameplay
         protected override void Tick(Vector3 playerPosition)
         {
             if (target == null) { Finish(); return; }
-            Aim(distance < 14f ? target.transform.position : null);
+            // The arrows always lead; the banner still says how warm the search is.
+            Aim(target.transform.position);
             float previous = distance;
             distance = Flat(target.transform.position, playerPosition);
             if (targetRenderer != null) targetRenderer.enabled = distance < 6f;
             if (Mathf.Abs(previous - distance) > .4f) Report();
-            if (distance < 1.8f)
+            if (distance < 2.2f)
             {
                 StoryDirector.Active.Ui.ShowToast("ТАБЫЛДЫ: " + Task.itemLabel);
                 Celebrate(target.transform.position, "ТАБЫЛДЫ!", true);
@@ -171,6 +198,7 @@ namespace ATTILA.Gameplay
     /// <summary>Lead a horse to the hitching post: it follows when you are close and stops when you stop.</summary>
     public sealed class EscortTask : WorldTask
     {
+        private const float LeadReach = 10f;
         private GameObject horse;
         private GameObject postProp;
         private GameObject ring;
@@ -187,7 +215,8 @@ namespace ATTILA.Gameplay
 
         protected override string Status()
         {
-            if (horse == null) return string.Empty;
+            if (horse == null || Player == null) return string.Empty;
+            if (Flat(horse.transform.position, Player.transform.position) >= LeadReach) return "Атқа қайта бар!";
             float toGoal = Flat(horse.transform.position, new Vector3(Task.goal.x, 0f, Task.goal.y));
             return $"Бағанаға дейін: {Mathf.CeilToInt(toGoal)} қадам";
         }
@@ -195,10 +224,13 @@ namespace ATTILA.Gameplay
         protected override void Tick(Vector3 playerPosition)
         {
             if (horse == null) { Finish(); return; }
-            Aim(new Vector3(Task.goal.x, 0f, Task.goal.y));
             var position = horse.transform.position;
             float toPlayer = Flat(position, playerPosition);
-            if (toPlayer < 9f && toPlayer > 2.4f)
+            // Left behind, the horse stops; the arrows then lead back to it instead of to the post.
+            bool lost = toPlayer >= LeadReach;
+            Aim(lost ? position : new Vector3(Task.goal.x, 0f, Task.goal.y));
+            if (lost && Flat(playerPosition, new Vector3(Task.goal.x, 0f, Task.goal.y)) < 6f) Nudge("АТ АРТТА ҚАЛДЫ");
+            if (toPlayer < LeadReach && toPlayer > 2.4f)
             {
                 var step = (playerPosition - position);
                 step.y = 0f;
@@ -208,7 +240,8 @@ namespace ATTILA.Gameplay
                 if (renderer != null) renderer.flipX = step.x < 0f;
             }
             Report();
-            if (Flat(position, new Vector3(Task.goal.x, 0f, Task.goal.y)) < 2.4f)
+            // The horse halts 2.4 from the player, so standing at the post must still count: 3.6 leaves room.
+            if (Flat(position, new Vector3(Task.goal.x, 0f, Task.goal.y)) < 3.6f)
             {
                 StoryDirector.Active.Ui.ShowToast("АТ БАЙЛАНДЫ");
                 Celebrate(new Vector3(Task.goal.x, 1f, Task.goal.y), "АТ БАЙЛАНДЫ!", true);
@@ -226,11 +259,18 @@ namespace ATTILA.Gameplay
     /// <summary>Raise a yurt: carry кереге, уық, шаңырақ and киіз to the site, one at a time, in that order.</summary>
     public sealed class BuildTask : WorldTask
     {
+        // Once the lattice stands its collider keeps the player about 3.2 from the centre, so a part counts
+        // as delivered anywhere within this ring around the site.
+        private const float DeliverRadius = 4.8f;
+        private const float PickupRadius = 1.9f;
+
         private readonly List<GameObject> parts = new();
         private YurtSite site;
         private GameObject carried;
         private int carriedIndex = -1;
         private int placed;
+        private GameObject partBeacon, siteBeacon;
+        private float time;
 
         protected override void Setup()
         {
@@ -240,6 +280,16 @@ namespace ATTILA.Gameplay
                 var part = Spawn(PropSprite(i), Task.points[i], .8f);
                 parts.Add(part);
             }
+            siteBeacon = Beacon(new Vector3(Task.goal.x, 0f, Task.goal.y), 4.2f);
+            MarkNext();
+        }
+
+        /// <summary>Light under the part that goes on next; the site glows while a part is being carried.</summary>
+        private void MarkNext()
+        {
+            if (partBeacon != null) Destroy(partBeacon);
+            partBeacon = carried == null && placed < parts.Count && parts[placed] != null ? Beacon(parts[placed].transform.position, 1.8f) : null;
+            if (siteBeacon != null) siteBeacon.SetActive(carried != null);
         }
 
         protected override string Status()
@@ -258,25 +308,34 @@ namespace ATTILA.Gameplay
 
         protected override void Tick(Vector3 playerPosition)
         {
+            time += Time.deltaTime;
             Aim(carried != null ? new Vector3(Task.goal.x, 0f, Task.goal.y)
                 : placed < parts.Count && parts[placed] != null ? parts[placed].transform.position : (Vector3?)null);
             if (carried == null)
             {
                 for (int i = 0; i < parts.Count; i++)
                 {
-                    if (parts[i] == null || i != placed) continue;
-                    if (Flat(parts[i].transform.position, playerPosition) > 1.6f) continue;
+                    if (parts[i] == null) continue;
+                    if (Flat(parts[i].transform.position, playerPosition) > PickupRadius) continue;
+                    if (i != placed)
+                    {
+                        // The order is the lesson: say which part goes up first instead of silently ignoring this one.
+                        Nudge("АЛДЫМЕН: " + PartName(placed).ToUpperInvariant());
+                        continue;
+                    }
                     carried = parts[i];
                     carriedIndex = i;
                     AudioService.Play(Sfx.Blip, .7f, .9f);
+                    Celebrate(playerPosition, PartName(i).ToUpperInvariant());
+                    MarkNext();
                     Report();
                     break;
                 }
             }
             else
             {
-                carried.transform.position = playerPosition + new Vector3(0f, 1.6f, 0f);
-                if (Flat(playerPosition, new Vector3(Task.goal.x, 0f, Task.goal.y)) < 3.2f)
+                carried.transform.position = playerPosition + new Vector3(0f, 1.7f + Mathf.Abs(Mathf.Sin(time * 8f)) * .12f, 0f);
+                if (Flat(playerPosition, new Vector3(Task.goal.x, 0f, Task.goal.y)) < DeliverRadius)
                 {
                     Destroy(carried);
                     parts[carriedIndex] = null;
@@ -288,9 +347,25 @@ namespace ATTILA.Gameplay
                     Celebrate(new Vector3(Task.goal.x, 1f, Task.goal.y), placed >= parts.Count ? "КИІЗ ҮЙ ДАЙЫН!" : $"{placed}/{parts.Count}", placed >= parts.Count);
                     StoryDirector.Active.Ui.ShowToast(placed >= parts.Count ? "КИІЗ ҮЙ ТІГІЛДІ" : "БӨЛІК ОРНЫНА ҚОЙЫЛДЫ", 2f);
                     Report();
-                    if (placed >= parts.Count) Finish();
+                    if (placed >= parts.Count) { Finish(); return; }
+                    MarkNext();
                 }
             }
         }
+    }
+
+    /// <summary>Slow pulse of a ground light, so a marker in the grass catches the eye without flashing.</summary>
+    public sealed class Breathe : MonoBehaviour
+    {
+        private Vector3 baseScale;
+        private float seed;
+
+        private void Start()
+        {
+            baseScale = transform.localScale;
+            seed = UnityEngine.Random.value * 6f;
+        }
+
+        private void Update() => transform.localScale = baseScale * (1f + Mathf.Sin(Time.time * 3f + seed) * .12f);
     }
 }

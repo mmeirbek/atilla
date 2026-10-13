@@ -16,6 +16,8 @@ namespace ATTILA.Player
         private int lastStep = -1;
         /// <summary>Only the player's feet are heard; a crowd of footsteps would be noise.</summary>
         public bool PlaySteps { get; set; }
+        /// <summary>Walk-cycle speed: 1 walking, higher while running, so the feet keep up with the ground.</summary>
+        public float Pace { get; set; } = 1f;
         public FacingDirection Facing { get; private set; } = FacingDirection.S;
         public bool IsMoving { get; private set; }
         private void Awake()
@@ -63,7 +65,7 @@ namespace ATTILA.Player
         {
             if (viewCamera == null) viewCamera = Camera.main;
             if (spriteSet == null) return;
-            if (IsMoving) animationTime += Time.deltaTime;
+            if (IsMoving) animationTime += Time.deltaTime * Pace;
             idleTime += Time.deltaTime;
             spriteRenderer.sprite = spriteSet.GetSprite(Facing, IsMoving, animationTime);
 

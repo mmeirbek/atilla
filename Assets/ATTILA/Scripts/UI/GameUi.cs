@@ -482,7 +482,7 @@ namespace ATTILA.UI
             if (chapter != null && !string.IsNullOrEmpty(chapter.intro))
                 Centered(words.transform, chapter.intro, 26, MenuUiKit.Cream, .36f, 1240, 140);
             if (showControls)
-                Centered(words.transform, "WASD — ЖҮРУ     E — СӨЙЛЕСУ     ESC — МӘЗІР", 22, GameUiKit.Muted, .14f, 1400, 40);
+                Centered(words.transform, "WASD — ЖҮРУ    SHIFT — ЖҮГІРУ    E — СӨЙЛЕСУ    ESC — МӘЗІР", 22, GameUiKit.Muted, .14f, 1600, 40);
             introHost = host;
             introDone = done;
             introRoutine = StartCoroutine(PlayIntro(host, hostGroup, wordsGroup));
@@ -528,12 +528,13 @@ namespace ATTILA.UI
             while (time < fadeIn + hold)
             {
                 time += Time.unscaledDeltaTime;
+                if (wordsGroup == null) break;
                 wordsGroup.alpha = Mathf.Clamp01(time / fadeIn);
                 if (time > skippableAfter && (VirtualInput.Action() || Input.GetMouseButtonDown(0))) break;
                 yield return null;
             }
-            wordsGroup.alpha = 1f;
-            for (float t = 0f; t < 1f; t += Time.unscaledDeltaTime / fadeOut)
+            if (wordsGroup != null) wordsGroup.alpha = 1f;
+            for (float t = 0f; t < 1f && hostGroup != null; t += Time.unscaledDeltaTime / fadeOut)
             {
                 hostGroup.alpha = 1f - t;
                 yield return null;
@@ -551,20 +552,22 @@ namespace ATTILA.UI
             UiFactory.Stretch((RectTransform)host.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
             var veil = UiFactory.Panel(host.transform, new Color(.07f, .04f, .03f, 0f));
             UiFactory.Stretch(veil.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            // The callbacks always run, even if something clears the overlays mid-fade: the ride and the
+            // release of input must never be left half done.
             for (float t = 0f; t < 1f; t += Time.unscaledDeltaTime / .35f)
             {
-                veil.color = new Color(.07f, .04f, .03f, t);
+                if (veil != null) veil.color = new Color(.07f, .04f, .03f, t);
                 yield return null;
             }
-            veil.color = new Color(.07f, .04f, .03f, 1f);
+            if (veil != null) veil.color = new Color(.07f, .04f, .03f, 1f);
             middle?.Invoke();
             yield return null;
             for (float t = 0f; t < 1f; t += Time.unscaledDeltaTime / .5f)
             {
-                veil.color = new Color(.07f, .04f, .03f, 1f - t);
+                if (veil != null) veil.color = new Color(.07f, .04f, .03f, 1f - t);
                 yield return null;
             }
-            Destroy(host);
+            if (host != null) Destroy(host);
             done?.Invoke();
         }
 

@@ -30,7 +30,7 @@ namespace ATTILA.Editor
         }
 
         [MenuItem("ATTILA/Build/macOS")]
-        public static void BuildMac() => Run(BuildTarget.StandaloneOSX, BuildTargetGroup.Standalone, Path.Combine(Output, "macOS", "ATTILA.app"));
+        public static void BuildMac() => Run(BuildTarget.StandaloneOSX, BuildTargetGroup.Standalone, Path.Combine(Output, "macOS", "SANLAQ.app"));
 
         public static void BuildAll()
         {
@@ -59,8 +59,8 @@ namespace ATTILA.Editor
         /// <summary>Settings every target shares: name, orientation and the resolutions the UI is drawn for.</summary>
         private static void Configure()
         {
-            PlayerSettings.companyName = "ATTILA";
-            PlayerSettings.productName = "ATTILA";
+            PlayerSettings.companyName = "SANLAQ";
+            PlayerSettings.productName = "SANLAQ";
             PlayerSettings.defaultInterfaceOrientation = UIOrientation.LandscapeLeft;
             PlayerSettings.allowedAutorotateToPortrait = false;
             PlayerSettings.allowedAutorotateToPortraitUpsideDown = false;

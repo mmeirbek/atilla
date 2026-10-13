@@ -135,6 +135,7 @@ namespace ATTILA.Environment
         {
             Ground(26f);
             reserved.Clear();
+            ReserveTaskSpots(LocationId.Aul);
             foreach (var spot in YurtSpots) Reserve(spot, 5f);
             Reserve(new Vector3(-3.6f, 0f, -1.6f), 3.5f);   // campfire
             Reserve(new Vector3(0f, 0f, -12f), 9.5f);        // соқыр теке clearing
@@ -184,6 +185,7 @@ namespace ATTILA.Environment
         {
             Ground(34f);
             reserved.Clear();
+            ReserveTaskSpots(LocationId.Steppe);
             Reserve(new Vector3(0f, 0f, 16f), 4f);
             Reserve(new Vector3(-6.5f, 0f, 10.5f), 5f);
             Reserve(new Vector3(-4.2f, 0f, -4.4f), 3.5f);
@@ -219,6 +221,7 @@ namespace ATTILA.Environment
         {
             Ground(30f, art != null ? art.path : null);
             reserved.Clear();
+            ReserveTaskSpots(LocationId.City);
             Reserve(new Vector3(0f, 0f, 12f), 8f);
             Reserve(new Vector3(0f, 0f, 1f), 4f);
             foreach (var spot in new[] { new Vector3(-9.5f, 0, 9.5f), new Vector3(9.5f, 0, 10f), new Vector3(-10.5f, 0, -6.5f), new Vector3(10.5f, 0, -7f) })
@@ -324,6 +327,18 @@ namespace ATTILA.Environment
         private readonly System.Collections.Generic.List<(Vector3 centre, float radius)> reserved = new();
 
         private void Reserve(Vector3 centre, float radius) => reserved.Add((centre, radius));
+
+        /// <summary>Keeps scattered trees and bushes off every pickup, search spot and building site of this chapter.</summary>
+        private void ReserveTaskSpots(LocationId location)
+        {
+            if (chapter == null) return;
+            foreach (var beat in chapter.beats)
+            {
+                if (beat.task == null || beat.location != location) continue;
+                foreach (var point in beat.task.points ?? System.Array.Empty<Vector2>()) Reserve(new Vector3(point.x, 0f, point.y), 2.6f);
+                if (beat.task.goal != Vector2.zero) Reserve(new Vector3(beat.task.goal.x, 0f, beat.task.goal.y), beat.action == BeatAction.Build ? 5.5f : 3f);
+            }
+        }
 
         private bool Free(Vector3 point, float radius)
         {
